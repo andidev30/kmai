@@ -68,7 +68,7 @@ function ClassDetailPage() {
 
         {activeTab === "materials" && (
           <section className="space-y-4">
-            <MaterialListPage />
+            <MaterialListPage classId={classInfo.id} />
           </section>
         )}
 

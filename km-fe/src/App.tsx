@@ -9,6 +9,7 @@ import LoginPage from "@/pages/login/Login"
 import NotFoundPage from "@/pages/not-found/NotFoundPage"
 import WelcomeWizard from "@/pages/onboarding/WelcomeWizard"
 import RegisterPage from "@/pages/register/Register"
+import { MaterialDetailPage } from "@/pages/material/MaterialDetailPage"
 
 const router = createBrowserRouter([
   {
@@ -44,6 +45,11 @@ const router = createBrowserRouter([
         path: "class",
         element: <ClassDetailPage />,
         handle: { crumb: () => ({ label: "Class Detail" }) },
+      },
+      {
+        path: "material/:id",
+        element: <MaterialDetailPage />,
+        handle: { crumb: () => ({ label: "Material Detail" }) },
       },
       {
         path: "*",

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { AddMaterialModal } from './AddMaterialModal';
 import { Input } from './ui/input';
 import { Search } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Material {
   id: string;
@@ -18,13 +19,17 @@ const initialMaterials: Material[] = [
   { id: '3', title: 'Calculus Made Easy', description: 'A simplified approach to understanding calculus.', fileUrl: '#' },
   { id: '4', title: 'History of Science', description: 'A journey through the history of scientific discoveries.', fileUrl: '#' },
   { id: '5', title: 'Physics for Dummies', description: 'A simple guide to the fundamental principles of physics.', fileUrl: '#' },
+  { id: '6', title: 'Advanced Calculus', description: 'Deep dive into advanced calculus concepts.', fileUrl: '#' },
+  { id: '7', title: 'Literary Analysis', description: 'Techniques for analyzing literature.', fileUrl: '#' },
+  { id: '8', title: 'Chemistry Basics', description: 'Fundamental concepts of chemistry.', fileUrl: '#' },
 ];
 
-export function MaterialListPage() {
+export function MaterialListPage({ classId }: { classId: string }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const itemsPerPage = 3;
+  const navigate = useNavigate();
 
   const filteredMaterials = initialMaterials.filter(material =>
     material.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -60,7 +65,7 @@ export function MaterialListPage() {
             </div>
             <Button
               variant="outline"
-              onClick={() => window.open(material.fileUrl, '_blank')}
+              onClick={() => navigate(`/dashboard/material/${material.id}?classId=${classId}`)}
               className="border-[#2563eb] text-[#2563eb] hover:bg-[#2563eb] hover:text-white rounded-lg px-4 py-2 transition-colors"
             >
               View Material
