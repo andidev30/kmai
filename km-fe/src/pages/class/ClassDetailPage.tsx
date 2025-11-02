@@ -3,6 +3,7 @@ import { BookOpen, ClipboardList, Users } from "lucide-react"
 import { type ComponentType, type SVGProps, useMemo } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { StudentListPage } from "@/components/StudentListPage"
+import { MaterialListPage } from "@/components/MaterialListPage"
 
 
 function ClassDetailPage() {
@@ -61,6 +62,12 @@ function ClassDetailPage() {
         {activeTab === "students" && (
           <section className="space-y-4">
             <StudentListPage />
+          </section>
+        )}
+
+        {activeTab === "materials" && (
+          <section className="space-y-4">
+            <MaterialListPage />
           </section>
         )}
       </div>
