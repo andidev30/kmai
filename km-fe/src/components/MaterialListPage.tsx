@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Card, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { AddMaterialModal } from './AddMaterialModal';
 
 interface Material {
   id: string;
@@ -19,6 +20,7 @@ const initialMaterials: Material[] = [
 
 export function MaterialListPage() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const itemsPerPage = 3;
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -28,7 +30,7 @@ export function MaterialListPage() {
   return (
     <div className="pt-4">
       <div className="flex justify-end mb-8">
-        <Button className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-lg px-6 py-2 transition-colors">
+        <Button onClick={() => setIsModalOpen(true)} className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-lg px-6 py-2 transition-colors">
           Add Material
         </Button>
       </div>
@@ -68,6 +70,7 @@ export function MaterialListPage() {
           Next
         </Button>
       </div>
+      <AddMaterialModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 }
