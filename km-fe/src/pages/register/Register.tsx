@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Link } from "react-router-dom"
 
 function RegisterPage() {
@@ -17,54 +19,42 @@ function RegisterPage() {
 
         <form className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-200" htmlFor="fullName">
-              Full name
-            </label>
-            <input
+            <Label htmlFor="fullName">Full name</Label>
+            <Input
               id="fullName"
               type="text"
               autoComplete="name"
               placeholder="Taylor Morgan"
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-200" htmlFor="registerEmail">
-              Work email
-            </label>
-            <input
+            <Label htmlFor="registerEmail">Work email</Label>
+            <Input
               id="registerEmail"
               type="email"
               autoComplete="email"
               placeholder="you@school.edu"
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
             />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-200" htmlFor="registerPassword">
-                Password
-              </label>
-              <input
+              <Label htmlFor="registerPassword">Password</Label>
+              <Input
                 id="registerPassword"
                 type="password"
                 autoComplete="new-password"
                 placeholder="••••••••"
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-200" htmlFor="confirmPassword">
-                Confirm password
-              </label>
-              <input
+              <Label htmlFor="confirmPassword">Confirm password</Label>
+              <Input
                 id="confirmPassword"
                 type="password"
                 autoComplete="new-password"
                 placeholder="••••••••"
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
               />
             </div>
           </div>
@@ -77,24 +67,40 @@ function RegisterPage() {
         <div className="space-y-3 text-center text-sm text-slate-400">
           <p>
             By continuing you agree to our {""}
-            <button type="button" className="font-medium text-blue-200 hover:text-blue-100">
+            <Button
+              type="button"
+              variant="link"
+              className="h-auto px-0 text-blue-200 hover:text-blue-100"
+            >
               Terms
-            </button>{" "}
+            </Button>{" "}
             and {""}
-            <button type="button" className="font-medium text-blue-200 hover:text-blue-100">
+            <Button
+              type="button"
+              variant="link"
+              className="h-auto px-0 text-blue-200 hover:text-blue-100"
+            >
               Privacy Policy
-            </button>
+            </Button>
             .
           </p>
           <p>
             Already have an account?{" "}
-            <Link className="font-medium text-blue-200 hover:text-blue-100" to="/login">
-              Sign in
-            </Link>
+            <Button
+              asChild
+              variant="link"
+              className="h-auto px-0 font-medium text-blue-200 hover:text-blue-100"
+            >
+              <Link to="/login">Sign in</Link>
+            </Button>
           </p>
-          <Link to="/" className="inline-flex items-center justify-center text-xs font-medium text-slate-500 hover:text-slate-300">
-            ← Back to landing page
-          </Link>
+          <Button
+            asChild
+            variant="link"
+            className="h-auto justify-center px-0 text-xs text-slate-500 hover:text-slate-300"
+          >
+            <Link to="/">← Back to landing page</Link>
+          </Button>
         </div>
       </div>
     </main>
