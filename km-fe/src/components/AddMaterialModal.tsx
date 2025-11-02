@@ -64,19 +64,6 @@ export function AddMaterialModal({ isOpen, onClose }: AddMaterialModalProps) {
       return;
     }
 
-    console.log({
-      name,
-      startDate,
-      endDate,
-      files: files.map(file => ({
-        name: file.name,
-        type: file.type,
-        size: file.size,
-      })),
-    });
-
-    // TODO: Show success toast - console.log as placeholder
-    console.log('Material added successfully');
     onClose();
   };
 

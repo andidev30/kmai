@@ -3,6 +3,7 @@ import { Card, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from './ui/input';
 import { Search } from 'lucide-react';
+import { AddExamModal } from './AddExamModal';
 
 interface Exam {
   id: string;
@@ -21,6 +22,7 @@ const initialExams: Exam[] = [
 export function ExamListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isAddExamModalOpen, setIsAddExamModalOpen] = useState(false);
   const itemsPerPage = 3;
 
   const filteredExams = initialExams.filter(exam =>
@@ -44,7 +46,7 @@ export function ExamListPage() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-lg px-6 py-2 transition-colors w-full md:w-auto">
+        <Button onClick={() => setIsAddExamModalOpen(true)} className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-lg px-6 py-2 transition-colors w-full md:w-auto">
           Add Exam
         </Button>
       </div>
@@ -83,6 +85,7 @@ export function ExamListPage() {
           Next
         </Button>
       </div>
+      <AddExamModal isOpen={isAddExamModalOpen} onClose={() => setIsAddExamModalOpen(false)} />
     </div>
   );
 }
