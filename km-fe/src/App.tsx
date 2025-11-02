@@ -5,6 +5,7 @@ import LoginPage from "@/pages/login/Login"
 import DashboardPage from "@/pages/dashboard/DashboardPage"
 import RegisterPage from "@/pages/register/Register"
 import WelcomeWizard from "@/pages/onboarding/WelcomeWizard"
+import ClassDetailPage from "@/pages/class/ClassDetailPage"
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/welcome" element={<WelcomeWizard />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/class/:id" element={<ClassDetailPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

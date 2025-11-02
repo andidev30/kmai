@@ -39,7 +39,9 @@ function WelcomeWizard() {
 
   const handleNext = () => {
     if (step === STEPS.length) {
-      navigate("/dashboard")
+      // In a real implementation you would use the newly created class id
+      const classId = "class-1"
+      navigate(`/class/${classId}`)
       return
     }
     setStep((prev) => Math.min(prev + 1, STEPS.length))
