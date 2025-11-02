@@ -4,6 +4,7 @@ import LandingPage from "@/pages/landing/Landing"
 import LoginPage from "@/pages/login/Login"
 import DashboardPage from "@/pages/dashboard/DashboardPage"
 import RegisterPage from "@/pages/register/Register"
+import WelcomeWizard from "@/pages/onboarding/WelcomeWizard"
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/welcome" element={<WelcomeWizard />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
