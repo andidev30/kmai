@@ -24,7 +24,7 @@ function RegisterPage() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!isFormValid) return
-    navigate("/welcome")
+    navigate("/dashboard/welcome")
   }
 
   return (

@@ -41,14 +41,14 @@ function WelcomeWizard() {
     if (step === STEPS.length) {
       // In a real implementation you would use the newly created class id
       const classId = "class-1"
-      navigate(`/class/${classId}`)
+      navigate(`/dashboard/class?id=${classId}`)
       return
     }
     setStep((prev) => Math.min(prev + 1, STEPS.length))
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#f9fafb] px-4 text-slate-900">
+    <div className="flex justify-center px-4 pb-10 pt-6 text-slate-900">
       <div className="w-full max-w-xl animate-[fade-in_0.5s_ease-out] space-y-8">
         <div className="text-center">
           <h1 className="mt-2 text-2xl font-semibold text-slate-900">
@@ -95,7 +95,7 @@ function WelcomeWizard() {
           </Button>
         </div>
       </div>
-    </main>
+    </div>
   )
 }
 

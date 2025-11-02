@@ -1,27 +1,65 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom"
+import { RouterProvider, createBrowserRouter } from "react-router-dom"
 
+import DashboardLayout from "@/components/DashboardLayout"
+import ClassDetailPage from "@/pages/class/ClassDetailPage"
+import DashboardNotFoundPage from "@/pages/dashboard/DashboardNotFoundPage"
+import DashboardPage from "@/pages/dashboard/DashboardPage"
 import LandingPage from "@/pages/landing/Landing"
 import LoginPage from "@/pages/login/Login"
-import DashboardPage from "@/pages/dashboard/DashboardPage"
-import RegisterPage from "@/pages/register/Register"
-import WelcomeWizard from "@/pages/onboarding/WelcomeWizard"
-import ClassDetailPage from "@/pages/class/ClassDetailPage"
 import NotFoundPage from "@/pages/not-found/NotFoundPage"
+import WelcomeWizard from "@/pages/onboarding/WelcomeWizard"
+import RegisterPage from "@/pages/register/Register"
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <LandingPage />,
+  },
+  {
+    path: "/login",
+    element: <LoginPage />,
+  },
+  {
+    path: "/register",
+    element: <RegisterPage />,
+  },
+  {
+    path: "/dashboard",
+    element: <DashboardLayout />,
+    handle: {
+      crumb: () => ({ label: "Dashboard", to: "/dashboard" }),
+    },
+    children: [
+      {
+        index: true,
+        element: <DashboardPage />,
+        handle: { crumb: () => ({ label: "Overview" }) },
+      },
+      {
+        path: "welcome",
+        element: <WelcomeWizard />,
+        handle: { crumb: () => ({ label: "Welcome" }) },
+      },
+      {
+        path: "class",
+        element: <ClassDetailPage />,
+        handle: { crumb: () => ({ label: "Class Detail" }) },
+      },
+      {
+        path: "*",
+        element: <DashboardNotFoundPage />,
+        handle: { crumb: () => ({ label: "Not found" }) },
+      },
+    ],
+  },
+  {
+    path: "*",
+    element: <NotFoundPage />,
+  },
+])
 
 function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/welcome" element={<WelcomeWizard />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/class/:id" element={<ClassDetailPage />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </BrowserRouter>
-  )
+  return <RouterProvider router={router} />
 }
 
 export default App
