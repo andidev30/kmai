@@ -74,7 +74,7 @@ function DashboardPage() {
             className="h-auto cursor-pointer rounded-2xl bg-blue-500 px-8 py-6 text-base font-semibold shadow-lg shadow-blue-500/30 transition hover:scale-[1.01] hover:bg-blue-400"
             onClick={() => navigate("/dashboard/welcome")}
           >
-            Create your first class
+            Create your class
           </Button>
           <Button
             size="lg"
@@ -82,7 +82,7 @@ function DashboardPage() {
             className="h-auto cursor-pointer rounded-2xl border-2 border-blue-200 bg-white px-8 py-6 text-base font-semibold text-blue-600 transition hover:-translate-y-0.5 hover:border-blue-400 hover:bg-blue-50"
             onClick={() => navigate("/dashboard")}
           >
-            Explore templates
+            Join to a class
           </Button>
         </div>
       </section>
