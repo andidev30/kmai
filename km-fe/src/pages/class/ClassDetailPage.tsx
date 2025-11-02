@@ -4,6 +4,7 @@ import { type ComponentType, type SVGProps, useMemo } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { StudentListPage } from "@/components/StudentListPage"
 import { MaterialListPage } from "@/components/MaterialListPage"
+import { ExamListPage } from "@/components/ExamListPage"
 
 
 function ClassDetailPage() {
@@ -68,6 +69,12 @@ function ClassDetailPage() {
         {activeTab === "materials" && (
           <section className="space-y-4">
             <MaterialListPage />
+          </section>
+        )}
+
+        {activeTab === "exams" && (
+          <section className="space-y-4">
+            <ExamListPage />
           </section>
         )}
       </div>
