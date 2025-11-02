@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Card, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Input } from './ui/input';
+import { Search } from 'lucide-react';
 
 interface Exam {
   id: string;
@@ -18,16 +20,31 @@ const initialExams: Exam[] = [
 
 export function ExamListPage() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
   const itemsPerPage = 3;
+
+  const filteredExams = initialExams.filter(exam =>
+    exam.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentExams = initialExams.slice(indexOfFirstItem, indexOfLastItem);
+  const currentExams = filteredExams.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <div className="pt-4">
-      <div className="flex justify-end mb-8">
-        <Button className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-lg px-6 py-2 transition-colors">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+        <div className="relative grow w-full md:w-auto">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+          <Input
+            type="text"
+            placeholder="Search exams by name..."
+            className="pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full text-black"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <Button className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-lg px-6 py-2 transition-colors w-full md:w-auto">
           Add Exam
         </Button>
       </div>
@@ -57,10 +74,10 @@ export function ExamListPage() {
         >
           Previous
         </Button>
-        <span className="text-[#1e1e1e]">Page {currentPage} of {Math.ceil(initialExams.length / itemsPerPage)}</span>
+        <span className="text-[#1e1e1e]">Page {currentPage} of {Math.ceil(filteredExams.length / itemsPerPage)}</span>
         <Button
-          onClick={() => setCurrentPage(prev => Math.min(Math.ceil(initialExams.length / itemsPerPage), prev + 1))}
-          disabled={currentPage === Math.ceil(initialExams.length / itemsPerPage)}
+          onClick={() => setCurrentPage(prev => Math.min(Math.ceil(filteredExams.length / itemsPerPage), prev + 1))}
+          disabled={currentPage === Math.ceil(filteredExams.length / itemsPerPage)}
           className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-lg px-4 py-2 transition-colors"
         >
           Next
