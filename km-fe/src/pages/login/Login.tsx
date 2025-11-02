@@ -2,9 +2,23 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Link } from "react-router-dom"
+import { type FormEvent, useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
 
 function LoginPage() {
+  const navigate = useNavigate()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!email || !password) {
+      return
+    }
+
+    navigate("/dashboard")
+  }
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-white">
       <div className="w-full max-w-md space-y-10 rounded-3xl border border-white/10 bg-slate-950/60 p-8 shadow-[0_40px_120px_-30px_rgba(59,130,246,0.45)] backdrop-blur">
@@ -18,7 +32,7 @@ function LoginPage() {
           </div>
         </div>
 
-        <form className="space-y-6">
+        <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-2">
             <Label htmlFor="email">Work email</Label>
             <Input
@@ -26,6 +40,8 @@ function LoginPage() {
               type="email"
               autoComplete="email"
               placeholder="you@school.edu"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
             />
           </div>
 
@@ -36,6 +52,8 @@ function LoginPage() {
               type="password"
               autoComplete="current-password"
               placeholder="••••••••"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
             />
           </div>
 
@@ -55,7 +73,11 @@ function LoginPage() {
             </Button>
           </div>
 
-          <Button className="w-full cursor-pointer rounded-full bg-blue-500 py-3 text-base font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:scale-[1.01] hover:bg-blue-400">
+          <Button
+            type="submit"
+            className="w-full cursor-pointer rounded-full bg-blue-500 py-3 text-base font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:scale-[1.01] hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-70"
+            disabled={!email || !password}
+          >
             Sign in
           </Button>
         </form>
