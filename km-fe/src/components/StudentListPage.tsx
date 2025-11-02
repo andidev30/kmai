@@ -3,27 +3,34 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardTitle } from "@/components/ui/card"
 import { Search } from "lucide-react"
+import { AddStudentModal } from './AddStudentModal'
 
 interface Student {
   id: string;
   name: string;
   studentId: string;
+  email: string;
+  dob?: Date;
+  gender?: string;
+  phone?: string;
 }
 
 const initialStudents: Student[] = [
-  { id: '1', name: 'Alice Smith', studentId: 'S001' },
-  { id: '2', name: 'Bob Johnson', studentId: 'S002' },
-  { id: '3', name: 'Charlie Brown', studentId: 'S003' },
-  { id: '4', name: 'Diana Prince', studentId: 'S004' },
-  { id: '5', name: 'Clark Kent', studentId: 'S005' },
+  { id: '1', name: 'Alice Smith', studentId: 'S001', email: 'alice@example.com' },
+  { id: '2', name: 'Bob Johnson', studentId: 'S002', email: 'bob@example.com' },
+  { id: '3', name: 'Charlie Brown', studentId: 'S003', email: 'charlie@example.com' },
+  { id: '4', name: 'Diana Prince', studentId: 'S004', email: 'diana@example.com' },
+  { id: '5', name: 'Clark Kent', studentId: 'S005', email: 'clark@example.com' },
 ];
 
 export function StudentListPage() {
+  const [students, setStudents] = useState<Student[]>(initialStudents);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
   const itemsPerPage = 3;
 
-  const filteredStudents = initialStudents.filter(student =>
+  const filteredStudents = students.filter(student =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -31,9 +38,17 @@ export function StudentListPage() {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentStudents = filteredStudents.slice(indexOfFirstItem, indexOfLastItem);
 
-  const onAddStudent = () => {
-    alert('Add new student functionality will be implemented here!');
-    // TODO: Implement modal or redirect to add student form
+  const handleAddStudent = (name: string, email: string, dob?: Date, gender?: string, phone?: string) => {
+    const newStudent: Student = {
+      id: `${students.length + 1}`,
+      studentId: `S${String(students.length + 1).padStart(3, '0')}`,
+      name,
+      email,
+      dob,
+      gender,
+      phone,
+    };
+    setStudents(prev => [...prev, newStudent]);
   };
 
   const onViewProgress = (studentId: string) => {
@@ -56,7 +71,7 @@ export function StudentListPage() {
           />
         </div>
         <Button
-          onClick={onAddStudent}
+          onClick={() => setIsAddStudentModalOpen(true)}
           className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-lg px-6 py-2 transition-colors w-full md:w-auto"
         >
           Add Student
@@ -71,7 +86,7 @@ export function StudentListPage() {
             <Card key={student.id} className="flex items-center justify-between p-4 shadow-sm rounded-lg border border-gray-200">
               <div>
                 <CardTitle className="text-lg font-semibold text-[#1e1e1e]">{student.name}</CardTitle>
-                <p className="text-sm text-[#6b7280]">ID: {student.studentId}</p>
+                <p className="text-sm text-[#6b7280]">ID: {student.studentId} | Email: {student.email} {student.phone && `| Phone: ${student.phone}`}</p>
               </div>
               <Button
                 variant="outline"
@@ -105,6 +120,11 @@ export function StudentListPage() {
           Next
         </Button>
       </div>
+      <AddStudentModal
+        isOpen={isAddStudentModalOpen}
+        onClose={() => setIsAddStudentModalOpen(false)}
+        onAddStudent={handleAddStudent}
+      />
     </div>
   );
 }
