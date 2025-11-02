@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
+import { BrowserRouter, Route, Routes } from "react-router-dom"
 
 import LandingPage from "@/pages/landing/Landing"
 import LoginPage from "@/pages/login/Login"
@@ -6,6 +6,7 @@ import DashboardPage from "@/pages/dashboard/DashboardPage"
 import RegisterPage from "@/pages/register/Register"
 import WelcomeWizard from "@/pages/onboarding/WelcomeWizard"
 import ClassDetailPage from "@/pages/class/ClassDetailPage"
+import NotFoundPage from "@/pages/not-found/NotFoundPage"
 
 function App() {
   return (
@@ -17,7 +18,7 @@ function App() {
         <Route path="/welcome" element={<WelcomeWizard />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/class/:id" element={<ClassDetailPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   )
