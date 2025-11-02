@@ -64,8 +64,8 @@ function LandingPage() {
                 asChild
                 className="flex cursor-pointer items-center justify-center gap-2 rounded-full bg-blue-500 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:scale-[1.02] hover:bg-blue-400"
               >
-                <Link className="flex items-center gap-2" to="/login">
-                  <span>Start for free</span>
+                <Link className="flex items-center gap-2" to="/register">
+                  <span>Try it</span>
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
