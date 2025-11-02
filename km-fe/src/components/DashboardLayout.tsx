@@ -10,8 +10,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
@@ -66,12 +64,6 @@ function DashboardLayout() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 rounded-2xl">
-              <DropdownMenuLabel className="text-xs uppercase tracking-wide text-slate-400">
-                Account
-              </DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => navigate("/profile")}>Profile</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/settings")}>Settings</DropdownMenuItem>
-              <DropdownMenuSeparator />
               <DropdownMenuItem className="text-red-500 hover:bg-red-50" onClick={() => navigate("/login")}>
                 Logout
                 <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
