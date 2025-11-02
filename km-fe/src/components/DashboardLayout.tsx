@@ -48,7 +48,7 @@ function DashboardLayout() {
   return (
     <div className="min-h-screen bg-[#f9fafb] px-4 py-6 text-slate-900 sm:px-6 lg:px-10">
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col gap-6">
-        <header className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white/90 px-5 py-3 shadow-sm backdrop-blur">
+        <header className="sticky top-0 z-50 flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white/90 px-5 py-3 shadow-sm backdrop-blur">
           <button
             type="button"
             className="text-left text-xl font-semibold text-slate-900"
