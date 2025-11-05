@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent, type FormEvent, type DragEvent } from 'react';
-import './AddMaterialModal.css';
+import "./date-input.css";
 import {
   Dialog,
   DialogContent,
@@ -81,11 +81,23 @@ export function AddMaterialModal({ isOpen, onClose }: AddMaterialModalProps) {
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="start-date" className="text-black">Date Start</Label>
-              <Input id="start-date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="date-input text-black" />
+              <Input
+                id="start-date"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="date-input rounded-2xl border-gray-200 bg-white text-base text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-400 focus-visible:ring-blue-400/40"
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="end-date" className="text-black">Date End</Label>
-              <Input id="end-date" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="date-input text-black" />
+              <Input
+                id="end-date"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="date-input rounded-2xl border-gray-200 bg-white text-base text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-400 focus-visible:ring-blue-400/40"
+              />
             </div>
           </div>
           <div className="grid gap-2">

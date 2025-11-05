@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from "react-router-dom"
 import { Card, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from './ui/input';
@@ -19,11 +20,16 @@ const initialExams: Exam[] = [
   { id: '4', title: 'Quiz 2', date: '2025-11-05', duration: 30 },
 ];
 
-export function ExamListPage() {
+type ExamListPageProps = {
+  classId: string
+}
+
+export function ExamListPage({ classId }: ExamListPageProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddExamModalOpen, setIsAddExamModalOpen] = useState(false);
   const itemsPerPage = 3;
+  const navigate = useNavigate()
 
   const filteredExams = initialExams.filter(exam =>
     exam.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -60,6 +66,7 @@ export function ExamListPage() {
             <Button
               variant="outline"
               className="border-[#2563eb] text-[#2563eb] hover:bg-[#2563eb] hover:text-white rounded-lg px-4 py-2 transition-colors"
+              onClick={() => navigate(`/dashboard/exam/${exam.id}?classId=${classId}`)}
             >
               View Details
             </Button>

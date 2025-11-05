@@ -1,37 +1,71 @@
-import { Card, CardHeader, CardTitle } from "@/components/ui/card"
-import { BookOpen, ClipboardList, Users } from "lucide-react"
-import { type ComponentType, type SVGProps, useMemo } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { StudentListPage } from "@/components/StudentListPage"
 import { MaterialListPage } from "@/components/MaterialListPage"
 import { ExamListPage } from "@/components/ExamListPage"
+import { ArrowLeft, BookOpen, ClipboardList, Users } from "lucide-react"
+import { type ComponentType, type FormEvent, type SVGProps, useMemo, useState } from "react"
+import { useNavigate, useSearchParams } from "react-router-dom"
 
+const SAMPLE_CLASS_DETAILS: Record<string, { name: string; subject: string }> = {
+  "class-1": { name: "X12 RPL 1", subject: "Matematika" },
+  "class-2": { name: "X12 RPL 2", subject: "B. Indo" },
+  "class-3": { name: "Batch 64", subject: "Inggris" },
+}
 
 function ClassDetailPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
 
-  const classInfo = useMemo(
-    () => ({
-      id: searchParams.get("id") ?? "class-1",
-      name: "X12 RPL 1",
-      subject: "Matematika",
-    }),
-    [searchParams]
-  )
+  const classIdParam = searchParams.get("id")
+  const isCreatingNewClass = !classIdParam || classIdParam === "new"
+
+  const classInfo = useMemo(() => {
+    const resolvedId = classIdParam && classIdParam !== "new" ? classIdParam : "class-1"
+    const details = SAMPLE_CLASS_DETAILS[resolvedId] ?? SAMPLE_CLASS_DETAILS["class-1"]
+    return {
+      id: resolvedId,
+      name: details.name,
+      subject: details.subject,
+    }
+  }, [classIdParam])
 
   const activeTab = useMemo(() => searchParams.get("tab"), [searchParams])
+
+  if (isCreatingNewClass) {
+    return (
+      <CreateClassView
+        onCancel={() => navigate("/dashboard")}
+        onCreate={(name, subject) => {
+          console.log("Creating class", { name, subject })
+          navigate("/dashboard")
+        }}
+      />
+    )
+  }
 
   return (
     <main className="min-h-screen bg-[#f9fafb] text-slate-900">
       <div className="mx-auto flex max-w-6xl flex-col gap-8">
         <section className="space-y-4">
+          <Button
+            variant="ghost"
+            className="w-fit rounded-full text-sm font-semibold text-blue-600 transition hover:bg-blue-50 hover:text-blue-700"
+            onClick={() => navigate("/dashboard")}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to classes
+          </Button>
           <Card className="bg-white/95 shadow-lg shadow-blue-500/5">
             <CardHeader>
               <CardTitle className="text-2xl font-semibold text-slate-900">
                 Class — {classInfo.name}
               </CardTitle>
-              <p className="text-sm text-slate-500">{classInfo.name} — {classInfo.subject}</p>
+              <p className="text-sm text-slate-500">
+                {classInfo.name} — {classInfo.subject}
+              </p>
             </CardHeader>
           </Card>
         </section>
@@ -62,7 +96,7 @@ function ClassDetailPage() {
 
         {activeTab === "students" && (
           <section className="space-y-4">
-            <StudentListPage />
+            <StudentListPage classId={classInfo.id} />
           </section>
         )}
 
@@ -74,7 +108,7 @@ function ClassDetailPage() {
 
         {activeTab === "exams" && (
           <section className="space-y-4">
-            <ExamListPage />
+            <ExamListPage classId={classInfo.id} />
           </section>
         )}
       </div>
@@ -106,6 +140,93 @@ function QuickAccessCard({ icon: Icon, label, onClick, isActive }: QuickAccessCa
       <Icon className="h-8 w-8 text-blue-500" />
       <span className="text-sm font-semibold text-slate-700">{label}</span>
     </Card>
+  )
+}
+
+type CreateClassViewProps = {
+  onCancel: () => void
+  onCreate: (className: string, subject: string) => void
+}
+
+function CreateClassView({ onCancel, onCreate }: CreateClassViewProps) {
+  const [className, setClassName] = useState("")
+  const [subject, setSubject] = useState("")
+
+  const isValid = className.trim().length > 0 && subject.trim().length > 0
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!isValid) return
+    onCreate(className.trim(), subject.trim())
+  }
+
+  return (
+    <main className="min-h-screen bg-[#f9fafb] text-slate-900">
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 sm:px-6 lg:px-0">
+        <Button
+          variant="ghost"
+          className="mt-4 w-fit rounded-full text-sm font-semibold text-blue-600 transition hover:bg-blue-50 hover:text-blue-700"
+          onClick={onCancel}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to classes
+        </Button>
+
+        <Card className="w-full bg-white/95 shadow-lg shadow-blue-500/5">
+          <CardHeader>
+            <CardTitle className="text-2xl font-semibold text-slate-900">
+              Create a class
+            </CardTitle>
+            <p className="text-sm text-slate-500">
+              Add a name and subject so your students know where they belong. You can edit this later.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              <div className="space-y-2">
+                <Label htmlFor="new-class-name" className="text-slate-600">
+                  Class name
+                </Label>
+                <Input
+                  id="new-class-name"
+                  placeholder="e.g. X12 RPL 3"
+                  value={className}
+                  onChange={(event) => setClassName(event.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-class-subject" className="text-slate-600">
+                  Subject
+                </Label>
+                <Input
+                  id="new-class-subject"
+                  placeholder="e.g. Matematika"
+                  value={subject}
+                  onChange={(event) => setSubject(event.target.value)}
+                />
+              </div>
+              <div className="flex items-center justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-full"
+                  onClick={onCancel}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="rounded-full bg-blue-500 text-white hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={!isValid}
+                >
+                  Create class
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </main>
   )
 }
 

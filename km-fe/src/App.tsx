@@ -4,11 +4,12 @@ import DashboardLayout from "@/components/DashboardLayout"
 import ClassDetailPage from "@/pages/class/ClassDetailPage"
 import DashboardNotFoundPage from "@/pages/dashboard/DashboardNotFoundPage"
 import DashboardPage from "@/pages/dashboard/DashboardPage"
+import ExamDetailPage from "@/pages/exam/ExamDetailPage"
 import LandingPage from "@/pages/landing/Landing"
 import LoginPage from "@/pages/login/Login"
 import NotFoundPage from "@/pages/not-found/NotFoundPage"
-import WelcomeWizard from "@/pages/onboarding/WelcomeWizard"
 import RegisterPage from "@/pages/register/Register"
+import StudentDetailPage from "@/pages/student/StudentDetailPage"
 import { MaterialDetailPage } from "@/pages/material/MaterialDetailPage"
 
 const router = createBrowserRouter([
@@ -27,34 +28,30 @@ const router = createBrowserRouter([
   {
     path: "/dashboard",
     element: <DashboardLayout />,
-    handle: {
-      crumb: () => ({ label: "Dashboard", to: "/dashboard" }),
-    },
     children: [
       {
         index: true,
         element: <DashboardPage />,
-        handle: { crumb: () => ({ label: "Overview" }) },
-      },
-      {
-        path: "welcome",
-        element: <WelcomeWizard />,
-        handle: { crumb: () => ({ label: "Welcome" }) },
       },
       {
         path: "class",
         element: <ClassDetailPage />,
-        handle: { crumb: () => ({ label: "Class Detail" }) },
+      },
+      {
+        path: "exam/:id",
+        element: <ExamDetailPage />,
       },
       {
         path: "material/:id",
         element: <MaterialDetailPage />,
-        handle: { crumb: () => ({ label: "Material Detail" }) },
+      },
+      {
+        path: "student/:id",
+        element: <StudentDetailPage />,
       },
       {
         path: "*",
         element: <DashboardNotFoundPage />,
-        handle: { crumb: () => ({ label: "Not found" }) },
       },
     ],
   },

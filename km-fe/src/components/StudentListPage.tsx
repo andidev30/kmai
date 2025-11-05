@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardTitle } from "@/components/ui/card"
@@ -23,12 +24,17 @@ const initialStudents: Student[] = [
   { id: '5', name: 'Clark Kent', studentId: 'S005', email: 'clark@example.com' },
 ];
 
-export function StudentListPage() {
+type StudentListPageProps = {
+  classId: string
+}
+
+export function StudentListPage({ classId }: StudentListPageProps) {
   const [students, setStudents] = useState<Student[]>(initialStudents);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
   const itemsPerPage = 3;
+  const navigate = useNavigate()
 
   const filteredStudents = students.filter(student =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -51,9 +57,8 @@ export function StudentListPage() {
     setStudents(prev => [...prev, newStudent]);
   };
 
-  const onViewProgress = (studentId: string) => {
-    alert(`View progress for student: ${studentId}`);
-    // TODO: Implement navigation to /dashboard/class/:id/student/:studentId or open modal
+  const handleViewProgress = (studentId: string) => {
+    navigate(`/dashboard/student/${studentId}?classId=${classId}`)
   };
 
   return (
@@ -90,7 +95,7 @@ export function StudentListPage() {
               </div>
               <Button
                 variant="outline"
-                onClick={() => onViewProgress(student.id)}
+                onClick={() => handleViewProgress(student.id)}
                 className="border-[#2563eb] text-[#2563eb] hover:bg-[#2563eb] hover:text-white rounded-lg px-4 py-2 transition-colors"
               >
                 View Progress

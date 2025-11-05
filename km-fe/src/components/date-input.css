@@ -1,0 +1,40 @@
+.date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(0.5);
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.date-input:hover::-webkit-calendar-picker-indicator,
+.date-input:focus-visible::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
+
+.date-input::-moz-focus-inner {
+  border: 0;
+}
+
+.date-input::-webkit-datetime-edit {
+  color: #1e293b;
+  padding: 0;
+}
+
+.date-input::-webkit-datetime-edit-fields-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.date-input::-webkit-datetime-edit-text,
+.date-input::-webkit-datetime-edit-month-field,
+.date-input::-webkit-datetime-edit-day-field,
+.date-input::-webkit-datetime-edit-year-field {
+  color: #64748b;
+}
+
+.date-input:not(:placeholder-shown)::-webkit-datetime-edit-text,
+.date-input:not(:placeholder-shown)::-webkit-datetime-edit-month-field,
+.date-input:not(:placeholder-shown)::-webkit-datetime-edit-day-field,
+.date-input:not(:placeholder-shown)::-webkit-datetime-edit-year-field {
+  color: #1e293b;
+}

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import "./date-input.css";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +11,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { DatePicker } from './ui/datepicker';
 import {
   Select,
   SelectContent,
@@ -28,7 +28,7 @@ interface AddStudentModalProps {
 export function AddStudentModal({ isOpen, onClose, onAddStudent }: AddStudentModalProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [dob, setDob] = useState<Date | undefined>();
+  const [dob, setDob] = useState('');
   const [gender, setGender] = useState('');
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
@@ -42,7 +42,8 @@ export function AddStudentModal({ isOpen, onClose, onAddStudent }: AddStudentMod
       return;
     }
 
-    onAddStudent(name, email, dob, gender, phone);
+    const parsedDob = dob ? new Date(dob) : undefined;
+    onAddStudent(name, email, parsedDob, gender, phone);
     onClose();
   };
 
@@ -75,7 +76,13 @@ export function AddStudentModal({ isOpen, onClose, onAddStudent }: AddStudentMod
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="dob" className="text-black">Date of Birth</Label>
-              <DatePicker value={dob} onChange={setDob} />
+              <Input
+                id="dob"
+                type="date"
+                value={dob}
+                onChange={(event) => setDob(event.target.value)}
+                className="date-input rounded-2xl border-gray-200 bg-white text-base text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-400 focus-visible:ring-blue-400/40"
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="gender" className="text-black">Gender</Label>

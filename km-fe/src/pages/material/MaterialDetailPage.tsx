@@ -2,7 +2,7 @@ import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 
 interface Material {
   id: string;
@@ -40,17 +40,23 @@ export function MaterialDetailPage() {
   }
 
   return (
-    <div className="pt-4 space-y-6">
-      <Card>
+    <main className="min-h-screen bg-[#f9fafb] text-slate-900">
+      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 pb-10 pt-4 sm:px-6 lg:px-0">
+        <Button
+          variant="ghost"
+          className="w-fit rounded-full text-sm font-semibold text-blue-600 transition hover:bg-blue-50 hover:text-blue-700"
+          onClick={() => navigate(`/dashboard/class?id=${classId ?? "class-1"}&tab=materials`)}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to class
+        </Button>
+        <Card className="bg-white/95 shadow-lg shadow-blue-500/5">
         <CardHeader>
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
               <CardTitle className="text-2xl font-bold">{material.title}</CardTitle>
               <p className="text-sm text-muted-foreground">{material.description}</p>
             </div>
-            <Button onClick={() => navigate(`/dashboard/class?id=${classId}&tab=materials`)}>
-              Back to Class
-            </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -88,6 +94,7 @@ export function MaterialDetailPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </main>
   );
 }
