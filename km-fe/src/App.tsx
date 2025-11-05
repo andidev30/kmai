@@ -10,7 +10,7 @@ import LoginPage from "@/pages/login/Login"
 import NotFoundPage from "@/pages/not-found/NotFoundPage"
 import RegisterPage from "@/pages/register/Register"
 import StudentDetailPage from "@/pages/student/StudentDetailPage"
-import { MaterialDetailPage } from "@/pages/material/MaterialDetailPage"
+import MaterialDetailPage from "@/pages/material/MaterialDetailPage"
 
 const router = createBrowserRouter([
   {
