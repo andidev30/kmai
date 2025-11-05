@@ -1,44 +1,7 @@
 import { Hono } from "hono"
 import { sql } from "../db"
-import { mockStudents } from "./classes"
 
 const exams = new Hono()
-
-const mockExamDetails: Record<
-  string,
-  {
-    id: string
-    title: string
-    description: string
-    date: string
-    duration: number
-    students: Array<{ id: string; name: string; status: "graded" | "grading" | "not-submitted" }>
-  }
-> = {
-  "1": {
-    id: "1",
-    title: "Midterm Exam",
-    description: "Covers chapters 1-6 with a focus on core problem-solving skills.",
-    date: "2025-11-15",
-    duration: 90,
-    students: [
-      { id: "1", name: "Alice Smith", status: "graded" },
-      { id: "2", name: "Bob Johnson", status: "grading" },
-      { id: "3", name: "Charlie Brown", status: "not-submitted" },
-    ],
-  },
-  "2": {
-    id: "2",
-    title: "Final Exam",
-    description: "Comprehensive assessment over the entire semester.",
-    date: "2025-12-15",
-    duration: 120,
-    students: [
-      { id: "1", name: "Alice Smith", status: "graded" },
-      { id: "2", name: "Bob Johnson", status: "grading" },
-    ],
-  },
-}
 
 exams.get("/:examId", async (c) => {
   const examId = c.req.param("examId")
@@ -67,21 +30,8 @@ exams.get("/:examId", async (c) => {
       students: studentRows,
     })
   } catch (error) {
-    console.error("[exams:detail] fallback to mock data", error)
-    return c.json(
-      mockExamDetails[examId] ?? {
-        id: examId,
-        title: "Exam",
-        description: "Exam description",
-        date: new Date().toISOString().slice(0, 10),
-        duration: 90,
-        students: mockStudents.map((student) => ({
-          id: student.id,
-          name: student.name,
-          status: "not-submitted" as const,
-        })),
-      },
-    )
+    console.error("[exams:detail] query failed", error)
+    return c.json({ message: "Internal server error" }, 500)
   }
 })
 
@@ -99,8 +49,8 @@ exams.post("/:examId/students/:studentId/upload", async (c) => {
     await sql`insert into exam_students (exam_id, student_id, status, answer_url) values (${examId}, ${studentId}, 'grading', '/uploads/${studentId}-${Date.now()}') on conflict (exam_id, student_id) do update set status = 'grading'`
     return c.json({ message: "Upload received" }, 201)
   } catch (error) {
-    console.error("[exams:upload] fallback response", error)
-    return c.json({ message: "Upload stored (mock)" }, 201)
+    console.error("[exams:upload] insert failed", error)
+    return c.json({ message: "Internal server error" }, 500)
   }
 })
 
@@ -112,8 +62,8 @@ exams.get("/:examId/download", async (c) => {
     const url = rows[0]?.question_bundle_url ?? "#"
     return c.json({ url })
   } catch (error) {
-    console.error("[exams:download] fallback", error)
-    return c.json({ url: "#" })
+    console.error("[exams:download] query failed", error)
+    return c.json({ message: "Internal server error" }, 500)
   }
 })
 
@@ -126,8 +76,8 @@ exams.get("/:examId/students/:studentId/download", async (c) => {
     const url = rows[0]?.answer_url ?? "#"
     return c.json({ url })
   } catch (error) {
-    console.error("[exams:student:download] fallback", error)
-    return c.json({ url: "#" })
+    console.error("[exams:student:download] query failed", error)
+    return c.json({ message: "Internal server error" }, 500)
   }
 })
 

@@ -35,15 +35,8 @@ auth.post("/login", async (c) => {
       },
     })
   } catch (error) {
-    console.error("[auth/login] fallback to mock data", error)
-    return c.json({
-      token: "mock-token-1",
-      user: {
-        id: "mock-user-1",
-        name: "Andi Teacher",
-        role: "teacher",
-      },
-    })
+    console.error("[auth/login] query failed", error)
+    return c.json({ message: "Internal server error" }, 500)
   }
 })
 
@@ -64,8 +57,8 @@ auth.post("/register", async (c) => {
     const id = inserted[0]?.id as string
     return c.json({ id, token: `mock-token-${id}` }, 201)
   } catch (error) {
-    console.error("[auth/register] fallback to mock user", error)
-    return c.json({ id: "mock-user-2", token: "mock-token-2" }, 201)
+    console.error("[auth/register] insert failed", error)
+    return c.json({ message: "Internal server error" }, 500)
   }
 })
 

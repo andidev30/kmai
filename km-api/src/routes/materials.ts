@@ -1,6 +1,5 @@
 import { Hono } from "hono"
 import { sql } from "../db"
-import { mockMaterials } from "./classes"
 
 const materials = new Hono()
 
@@ -14,10 +13,8 @@ materials.get("/:materialId", async (c) => {
     }
     return c.json(rows[0])
   } catch (error) {
-    console.error("[materials:detail] fallback to mock data", error)
-    const material =
-      mockMaterials.find((item) => item.id === materialId) ?? mockMaterials[0]
-    return c.json(material)
+    console.error("[materials:detail] query failed", error)
+    return c.json({ message: "Internal server error" }, 500)
   }
 })
 
