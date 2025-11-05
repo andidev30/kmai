@@ -14,21 +14,30 @@ import { Label } from '@/components/ui/label';
 import { Upload, X } from 'lucide-react';
 
 interface AddMaterialModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen: boolean
+  onClose: () => void
+  onSubmit?: (payload: {
+    title: string
+    description?: string
+    dateStart?: string
+    dateEnd?: string
+    file: File
+  }) => Promise<void> | void
 }
 
-export function AddMaterialModal({ isOpen, onClose }: AddMaterialModalProps) {
-  const [name, setName] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [files, setFiles] = useState<File[]>([]);
-  const [error, setError] = useState('');
-  const [isDragOver, setIsDragOver] = useState(false);
+export function AddMaterialModal({ isOpen, onClose, onSubmit }: AddMaterialModalProps) {
+  const [name, setName] = useState("")
+  const [startDate, setStartDate] = useState("")
+  const [endDate, setEndDate] = useState("")
+  const [description, setDescription] = useState("")
+  const [files, setFiles] = useState<File[]>([])
+  const [error, setError] = useState("")
+  const [isDragOver, setIsDragOver] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFiles(Array.from(e.target.files));
+    if (e.target.files?.length) {
+      setFiles([e.target.files[0]])
     }
   };
 
@@ -36,8 +45,8 @@ export function AddMaterialModal({ isOpen, onClose }: AddMaterialModalProps) {
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
-    if (e.dataTransfer.files) {
-      setFiles(Array.from(e.dataTransfer.files));
+    if (e.dataTransfer.files?.length) {
+      setFiles([e.dataTransfer.files[0]])
     }
   };
 
@@ -57,15 +66,42 @@ export function AddMaterialModal({ isOpen, onClose }: AddMaterialModalProps) {
     setFiles(files.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
     if (!name || files.length === 0) {
-      setError('Name and file are required.');
-      return;
+      setError("Name and file are required.")
+      return
     }
 
-    onClose();
-  };
+    if (!onSubmit) {
+      onClose()
+      return
+    }
+
+    setIsSubmitting(true)
+    setError("")
+
+    try {
+      await onSubmit({
+        title: name,
+        description: description || undefined,
+        dateStart: startDate || undefined,
+        dateEnd: endDate || undefined,
+        file: files[0],
+      })
+      setName("")
+      setStartDate("")
+      setEndDate("")
+      setDescription("")
+      setFiles([])
+      onClose()
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : "Failed to save material"
+      setError(message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -77,6 +113,15 @@ export function AddMaterialModal({ isOpen, onClose }: AddMaterialModalProps) {
           <div className="grid gap-2">
             <Label htmlFor="name" className="text-black">Name</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="text-black" />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="description" className="text-black">Description (optional)</Label>
+            <Input
+              id="description"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              className="text-black"
+            />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
@@ -110,8 +155,19 @@ export function AddMaterialModal({ isOpen, onClose }: AddMaterialModalProps) {
             >
               <Upload className="mx-auto h-12 w-12 text-gray-400" />
               <p className="mt-2 text-sm text-gray-600">Drag & drop files here, or click to select files</p>
-              <Input id="file" type="file" onChange={handleFileChange} accept=".txt,.pdf,.docx,.ppt,.jpg,.jpeg,.png,.gif,.svg,.webp" multiple className="hidden text-black" />
-              <Button type="button" variant="outline" className="mt-4" onClick={() => document.getElementById('file')?.click()}>
+              <Input
+                id="material-file-input"
+                type="file"
+                onChange={handleFileChange}
+                accept=".txt,.pdf,.docx,.ppt,.jpg,.jpeg,.png,.gif,.svg,.webp"
+                className="hidden text-black"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-4"
+                onClick={() => document.getElementById("material-file-input")?.click()}
+              >
                 Select Files
               </Button>
             </div>
@@ -139,14 +195,16 @@ export function AddMaterialModal({ isOpen, onClose }: AddMaterialModalProps) {
           {error && <p className="text-sm text-red-500">{error}</p>}
           <DialogFooter className="mt-4">
             <DialogClose asChild>
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" disabled={isSubmitting}>
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit">Save</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Save"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

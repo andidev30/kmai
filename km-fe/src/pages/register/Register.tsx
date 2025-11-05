@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { type FormEvent, useMemo, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
+import { register as registerApi } from "@/lib/api"
 
 function RegisterPage() {
   const navigate = useNavigate()
@@ -10,6 +11,8 @@ function RegisterPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const isFormValid = useMemo(() => {
     return (
@@ -24,7 +27,19 @@ function RegisterPage() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!isFormValid) return
-    navigate("/dashboard")
+    setIsSubmitting(true)
+    setError(null)
+
+    registerApi(fullName, email, password)
+      .then((response) => {
+        window.localStorage.setItem("km.token", response.token)
+        window.localStorage.setItem("km.user", JSON.stringify({ id: response.id, name: fullName }))
+        navigate("/dashboard")
+      })
+      .catch((cause: Error) => {
+        setError(cause.message)
+      })
+      .finally(() => setIsSubmitting(false))
   }
 
   return (
@@ -93,10 +108,11 @@ function RegisterPage() {
           <Button
             type="submit"
             className="w-full rounded-full bg-blue-500 py-3 text-base font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:scale-[1.01] hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
-            disabled={!isFormValid}
+            disabled={!isFormValid || isSubmitting}
           >
-            Create account
+            {isSubmitting ? "Creating account..." : "Create account"}
           </Button>
+          {error && <p className="text-center text-sm text-red-400">{error}</p>}
         </form>
 
         <div className="space-y-3 text-center text-sm text-slate-400">

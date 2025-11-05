@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from 'react';
-import "./date-input.css";
+import { useState, type FormEvent } from "react"
+import "./date-input.css"
 import {
   Dialog,
   DialogContent,
@@ -7,10 +7,10 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -20,32 +20,61 @@ import {
 } from "@/components/ui/select"
 
 interface AddStudentModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onAddStudent: (name: string, email: string, dob?: Date, gender?: string, phone?: string) => void;
+  isOpen: boolean
+  onClose: () => void
+  onAddStudent: (input: {
+    name: string
+    email: string
+    dob?: string
+    gender?: string
+    phone?: string
+  }) => Promise<void> | void
 }
 
 export function AddStudentModal({ isOpen, onClose, onAddStudent }: AddStudentModalProps) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [dob, setDob] = useState('');
-  const [gender, setGender] = useState('');
-  const [phone, setPhone] = useState('');
-  const [error, setError] = useState('');
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [dob, setDob] = useState("")
+  const [gender, setGender] = useState("")
+  const [phone, setPhone] = useState("")
+  const [error, setError] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
+  const resetForm = () => {
+    setName("")
+    setEmail("")
+    setDob("")
+    setGender("")
+    setPhone("")
+  }
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    setError("")
 
     if (!name || !email) {
-      setError('Name and Email are required.');
-      return;
+      setError("Name and Email are required.")
+      return
     }
 
-    const parsedDob = dob ? new Date(dob) : undefined;
-    onAddStudent(name, email, parsedDob, gender, phone);
-    onClose();
-  };
+    try {
+      setIsSubmitting(true)
+      await onAddStudent({
+        name,
+        email,
+        dob: dob || undefined,
+        gender: gender || undefined,
+        phone: phone || undefined,
+      })
+      resetForm()
+      onClose()
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : "Failed to add student"
+      setError(message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -115,10 +144,12 @@ export function AddStudentModal({ isOpen, onClose, onAddStudent }: AddStudentMod
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit">Add Student</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Add Student"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

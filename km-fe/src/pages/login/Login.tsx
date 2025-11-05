@@ -4,11 +4,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { type FormEvent, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
+import { login } from "@/lib/api"
 
 function LoginPage() {
   const navigate = useNavigate()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -16,7 +19,19 @@ function LoginPage() {
       return
     }
 
-    navigate("/dashboard")
+    setIsSubmitting(true)
+    setError(null)
+
+    login(email, password)
+      .then((response) => {
+        window.localStorage.setItem("km.token", response.token)
+        window.localStorage.setItem("km.user", JSON.stringify(response.user))
+        navigate("/dashboard")
+      })
+      .catch((cause: Error) => {
+        setError(cause.message)
+      })
+      .finally(() => setIsSubmitting(false))
   }
 
   return (
@@ -76,10 +91,11 @@ function LoginPage() {
           <Button
             type="submit"
             className="w-full cursor-pointer rounded-full bg-blue-500 py-3 text-base font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:scale-[1.01] hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-70"
-            disabled={!email || !password}
+            disabled={!email || !password || isSubmitting}
           >
-            Sign in
+            {isSubmitting ? "Signing in..." : "Sign in"}
           </Button>
+          {error && <p className="text-center text-sm text-red-400">{error}</p>}
         </form>
 
         <div className="space-y-3 text-center text-sm text-slate-400">

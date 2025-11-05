@@ -6,14 +6,9 @@ import { StudentListPage } from "@/components/StudentListPage"
 import { MaterialListPage } from "@/components/MaterialListPage"
 import { ExamListPage } from "@/components/ExamListPage"
 import { ArrowLeft, BookOpen, ClipboardList, Users } from "lucide-react"
-import { type ComponentType, type FormEvent, type SVGProps, useMemo, useState } from "react"
+import { type ComponentType, type FormEvent, type SVGProps, useEffect, useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
-
-const SAMPLE_CLASS_DETAILS: Record<string, { name: string; subject: string }> = {
-  "class-1": { name: "X12 RPL 1", subject: "Matematika" },
-  "class-2": { name: "X12 RPL 2", subject: "B. Indo" },
-  "class-3": { name: "Batch 64", subject: "Inggris" },
-}
+import { createClass, getClassDetail } from "@/lib/api"
 
 function ClassDetailPage() {
   const [searchParams] = useSearchParams()
@@ -21,28 +16,48 @@ function ClassDetailPage() {
 
   const classIdParam = searchParams.get("id")
   const isCreatingNewClass = !classIdParam || classIdParam === "new"
+  const [classInfo, setClassInfo] = useState<{ id: string; name: string; subject: string; description?: string }>()
+  const [isLoading, setIsLoading] = useState(!isCreatingNewClass)
+  const [error, setError] = useState<string | null>(null)
 
-  const classInfo = useMemo(() => {
-    const resolvedId = classIdParam && classIdParam !== "new" ? classIdParam : "class-1"
-    const details = SAMPLE_CLASS_DETAILS[resolvedId] ?? SAMPLE_CLASS_DETAILS["class-1"]
-    return {
-      id: resolvedId,
-      name: details.name,
-      subject: details.subject,
-    }
-  }, [classIdParam])
+  useEffect(() => {
+    if (isCreatingNewClass) return
 
-  const activeTab = useMemo(() => searchParams.get("tab"), [searchParams])
+    setIsLoading(true)
+    getClassDetail(classIdParam!)
+      .then((response) => {
+        setClassInfo(response)
+        setError(null)
+      })
+      .catch((cause: Error) => {
+        setError(cause.message)
+      })
+      .finally(() => setIsLoading(false))
+  }, [classIdParam, isCreatingNewClass])
+
+  const activeTab = useMemo(() => searchParams.get("tab") ?? "students", [searchParams])
 
   if (isCreatingNewClass) {
     return (
       <CreateClassView
         onCancel={() => navigate("/dashboard")}
-        onCreate={(name, subject) => {
-          console.log("Creating class", { name, subject })
-          navigate("/dashboard")
-        }}
+        onCreate={(name, subject) =>
+          createClass({ name, subject })
+            .then((created) => navigate(`/dashboard/class?id=${created.id}&tab=students`))
+            .catch((cause: Error) => {
+              console.error("[CreateClassView] failed", cause)
+              throw cause
+            })
+        }
       />
+    )
+  }
+
+  if (isLoading || !classInfo) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#f9fafb] text-slate-900">
+        {error ? <p className="text-sm text-red-500">{error}</p> : <p>Loading class…</p>}
+      </main>
     )
   }
 
@@ -151,13 +166,22 @@ type CreateClassViewProps = {
 function CreateClassView({ onCancel, onCreate }: CreateClassViewProps) {
   const [className, setClassName] = useState("")
   const [subject, setSubject] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const isValid = className.trim().length > 0 && subject.trim().length > 0
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!isValid) return
-    onCreate(className.trim(), subject.trim())
+    if (!isValid || isSubmitting) return
+    setIsSubmitting(true)
+    setError(null)
+    Promise.resolve(onCreate(className.trim(), subject.trim()))
+      .catch((cause) => {
+        const message = cause instanceof Error ? cause.message : "Failed to create class"
+        setError(message)
+      })
+      .finally(() => setIsSubmitting(false))
   }
 
   return (
@@ -217,12 +241,13 @@ function CreateClassView({ onCancel, onCreate }: CreateClassViewProps) {
                 <Button
                   type="submit"
                   className="rounded-full bg-blue-500 text-white hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={!isValid}
+                  disabled={!isValid || isSubmitting}
                 >
-                  Create class
+                  {isSubmitting ? "Creating..." : "Create class"}
                 </Button>
               </div>
             </form>
+            {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
           </CardContent>
         </Card>
       </div>

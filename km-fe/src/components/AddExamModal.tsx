@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from "react"
 import {
   Dialog,
   DialogContent,
@@ -6,59 +6,83 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from './ui/checkbox';
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Checkbox } from "./ui/checkbox"
 
 interface AddExamModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen: boolean
+  onClose: () => void
+  materials: MaterialOption[]
+  onSubmit: (payload: {
+    materialIds: string[]
+    mcq: number
+    essay: number
+    uniquePerStudent: boolean
+  }) => Promise<void> | void
 }
 
 interface MaterialOption {
-  value: string;
-  label: string;
+  value: string
+  label: string
 }
 
-const mockMaterials: MaterialOption[] = [
-  { value: 'material-1', label: 'Algebra Practice Worksheet (Uploaded: 2025-10-20)' },
-  { value: 'material-2', label: 'The World of Geometry (Uploaded: 2025-10-25)' },
-  { value: 'material-3', label: 'Calculus Made Easy (Uploaded: 2025-11-01)' },
-  { value: 'material-4', label: 'History of Science (Uploaded: 2025-11-05)' },
-];
-
-export function AddExamModal({ isOpen, onClose }: AddExamModalProps) {
-  const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
-  const [mcqQuestions, setMcqQuestions] = useState<number | string>('');
-  const [essayQuestions, setEssayQuestions] = useState<number | string>('');
-  const [error, setError] = useState('');
-  const [generateUniqueQuestions, setGenerateUniqueQuestions] = useState(false);
+export function AddExamModal({ isOpen, onClose, materials, onSubmit }: AddExamModalProps) {
+  const [selectedMaterials, setSelectedMaterials] = useState<string[]>([])
+  const [mcqQuestions, setMcqQuestions] = useState<number | string>("")
+  const [essayQuestions, setEssayQuestions] = useState<number | string>("")
+  const [error, setError] = useState("")
+  const [generateUniqueQuestions, setGenerateUniqueQuestions] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleMaterialSelect = (materialId: string, checked: boolean) => {
     if (checked) {
-      setSelectedMaterials(prev => [...prev, materialId]);
+      setSelectedMaterials((prev) => [...prev, materialId])
     } else {
-      setSelectedMaterials(prev => prev.filter(id => id !== materialId));
+      setSelectedMaterials((prev) => prev.filter((id) => id !== materialId))
     }
-  };
+  }
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
+  const resetForm = () => {
+    setSelectedMaterials([])
+    setMcqQuestions("")
+    setEssayQuestions("")
+    setGenerateUniqueQuestions(false)
+  }
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    setError("")
 
     if (selectedMaterials.length === 0) {
-      setError('Please select at least one material.');
-      return;
+      setError("Please select at least one material.")
+      return
     }
 
     if (!mcqQuestions && !essayQuestions) {
-      setError('Please enter at least one question count.');
-      return;
+      setError("Please enter at least one question count.")
+      return
     }
-    onClose();
-  };
+
+    try {
+      setIsSubmitting(true)
+      await onSubmit({
+        materialIds: selectedMaterials,
+        mcq: Number(mcqQuestions || 0),
+        essay: Number(essayQuestions || 0),
+        uniquePerStudent: generateUniqueQuestions,
+      })
+      resetForm()
+      onClose()
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : "Failed to generate exam"
+      setError(message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -69,17 +93,25 @@ export function AddExamModal({ isOpen, onClose }: AddExamModalProps) {
         <form onSubmit={handleSubmit} className="grid gap-6 py-4">
           <div className="grid gap-2">
             <Label htmlFor="materials" className="text-black">Select List Materials for Exam</Label>
-            <div className="border rounded-md p-4 h-48 overflow-y-auto">
-              {mockMaterials.map(material => (
-                <div key={material.value} className="flex items-center space-x-2 mb-2">
-                  <Checkbox
-                    id={`material-${material.value}`}
-                    checked={selectedMaterials.includes(material.value)}
-                    onCheckedChange={(checked: boolean) => handleMaterialSelect(material.value, checked)}
-                  />
-                  <Label htmlFor={`material-${material.value}`} className="text-black">{material.label}</Label>
-                </div>
-              ))}
+            <div className="h-48 overflow-y-auto rounded-md border p-4">
+              {materials.length === 0 ? (
+                <p className="text-sm text-slate-500">No materials available. Add material first.</p>
+              ) : (
+                materials.map((material) => (
+                  <div key={material.value} className="mb-2 flex items-center space-x-2">
+                    <Checkbox
+                      id={`material-${material.value}`}
+                      checked={selectedMaterials.includes(material.value)}
+                      onCheckedChange={(checked: boolean) =>
+                        handleMaterialSelect(material.value, checked)
+                      }
+                    />
+                    <Label htmlFor={`material-${material.value}`} className="text-black">
+                      {material.label}
+                    </Label>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -120,16 +152,20 @@ export function AddExamModal({ isOpen, onClose }: AddExamModalProps) {
 
           <DialogFooter className="mt-4">
             <DialogClose asChild>
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" disabled={isSubmitting}>
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-lg px-6 py-2 transition-colors">
-              Generate Exam
+            <Button
+              type="submit"
+              className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-lg px-6 py-2 transition-colors"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Generating…" : "Generate Exam"}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }
