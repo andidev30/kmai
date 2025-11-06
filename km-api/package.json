@@ -11,7 +11,7 @@
   "dependencies": {
     "@hono/node-server": "^1.13.3",
     "dotenv": "^16.4.5",
-    "hono": "^4.6.7",
+    "hono": "^4.10.4",
     "pg": "^8.13.1",
     "postgres": "^3.4.4"
   },
