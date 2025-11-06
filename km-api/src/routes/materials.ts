@@ -1,13 +1,21 @@
 import { Hono } from "hono"
 import { sql } from "../db"
+import { requireAuth, type AuthVariables } from "../middleware/auth"
 
-const materials = new Hono()
+const materials = new Hono<{ Variables: AuthVariables }>()
+
+materials.use("*", requireAuth)
 
 materials.get("/:materialId", async (c) => {
   const materialId = c.req.param("materialId")
+  const userId = c.get("authUserId")
   try {
     const rows =
-      await sql`select id, title, description, content, file_url as "fileUrl", coalesce(source, '') as "source", date_start as "dateStart", date_end as "dateEnd" from materials where id = ${materialId} limit 1`
+      await sql`select m.id, m.title, m.description, m.content, m.file_url as "fileUrl", coalesce(m.source, '') as "source", m.date_start as "dateStart", m.date_end as "dateEnd"
+        from materials m
+        inner join classes c2 on c2.id = m.class_id
+        where m.id = ${materialId} and c2.created_by = ${userId}
+        limit 1`
     if (!rows.length) {
       return c.json({ message: "Material not found" }, 404)
     }

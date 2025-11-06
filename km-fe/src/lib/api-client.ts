@@ -13,6 +13,12 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     ...(options.headers ?? {}),
   }
 
+  const token =
+    typeof window !== "undefined" ? window.localStorage.getItem("km.token") : null
+  if (token && !headers["Authorization"]) {
+    headers["Authorization"] = `Bearer ${token}`
+  }
+
   let body: BodyInit | undefined
 
   if (options.rawBody !== undefined) {

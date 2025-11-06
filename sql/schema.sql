@@ -17,6 +17,7 @@ create table if not exists classes (
   name text not null,
   subject text not null,
   description text,
+  created_by uuid not null references users(id) on delete cascade,
   created_at timestamptz not null default now()
 );
 
@@ -28,6 +29,7 @@ create table if not exists students (
   student_code text not null,
   gender text,
   phone text,
+  created_by uuid not null references users(id) on delete cascade,
   created_at timestamptz not null default now(),
   unique (class_id, student_code)
 );
@@ -42,6 +44,7 @@ create table if not exists materials (
   source text,
   date_start timestamptz,
   date_end timestamptz,
+  created_by uuid not null references users(id) on delete cascade,
   created_at timestamptz not null default now()
 );
 
