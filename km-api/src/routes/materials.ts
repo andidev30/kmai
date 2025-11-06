@@ -7,7 +7,7 @@ materials.get("/:materialId", async (c) => {
   const materialId = c.req.param("materialId")
   try {
     const rows =
-      await sql`select id, title, description, content, file_url as "fileUrl", source, date_start as "dateStart", date_end as "dateEnd" from materials where id = ${materialId} limit 1`
+      await sql`select id, title, description, content, file_url as "fileUrl", coalesce(source, '') as "source", date_start as "dateStart", date_end as "dateEnd" from materials where id = ${materialId} limit 1`
     if (!rows.length) {
       return c.json({ message: "Material not found" }, 404)
     }

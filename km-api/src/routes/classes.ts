@@ -101,6 +101,7 @@ classes.post("/:classId/materials", async (c) => {
   const file = formData["file"]
   const dateStart = typeof formData["dateStart"] === "string" ? formData["dateStart"] : undefined
   const dateEnd = typeof formData["dateEnd"] === "string" ? formData["dateEnd"] : undefined
+  const source = typeof formData["source"] === "string" ? formData["source"].trim() : ""
 
   if (!title || !file) {
     return c.json({ message: "Title and file are required" }, 400)
@@ -115,7 +116,7 @@ classes.post("/:classId/materials", async (c) => {
 
   try {
     const rows =
-      await sql`insert into materials (class_id, title, description, file_url, date_start, date_end) values (${classId}, ${title}, ${description ?? null}, ${fileUrl}, ${dateStart ?? null}, ${dateEnd ?? null}) returning id`
+      await sql`insert into materials (class_id, title, description, file_url, source, date_start, date_end) values (${classId}, ${title}, ${description ?? null}, ${fileUrl}, ${source || "Uploaded material"}, ${dateStart ?? null}, ${dateEnd ?? null}) returning id`
     return c.json({ id: rows[0]?.id }, 201)
   } catch (error) {
     console.error("[classes:materials:create] insert failed", error)
