@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "types": ["cypress", "node"],
+    "baseUrl": "."
+  },
+  "include": ["cypress/**/*.ts", "cypress/**/*.d.ts"]
+}

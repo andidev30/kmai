@@ -1,0 +1,16 @@
+{
+  "name": "kmai-e2e-tests",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
+    "test": "npm run cypress:run"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "cypress": "^13.15.1",
+    "typescript": "~5.9.3"
+  }
+}
