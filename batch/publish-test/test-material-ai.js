@@ -6,13 +6,34 @@ const pubsub = new PubSub({
 });
 
 async function publishMessage() {
-  const topicName = "test";
+  const topicName = "kmai-materials";
 
-  const data = {
-    StringField: "Andi",
-    FloatField: 3.14,
-    BooleanField: true,
-  };
+  const data = [
+    {
+      uri: "gs://kmai_upload/data_test/Screenshot 2025-11-08 at 21.23.06.png",
+      mimeType: "image/png",
+    },
+    {
+      uri: "gs://kmai_upload/data_test/Screenshot 2025-11-08 at 21.23.27.png",
+      mimeType: "image/png",
+    },
+    {
+      uri: "gs://kmai_upload/data_test/Screenshot 2025-11-08 at 21.23.34.png",
+      mimeType: "image/png",
+    },
+    {
+      uri: "gs://kmai_upload/data_test/Screenshot 2025-11-08 at 21.23.42.png",
+      mimeType: "image/png",
+    },
+    {
+      uri: "gs://kmai_upload/data_test/Screenshot 2025-11-08 at 21.23.50.png",
+      mimeType: "image/png",
+    },
+    {
+      uri: "gs://kmai_upload/data_test/Screenshot 2025-11-08 at 21.23.57.png",
+      mimeType: "image/png",
+    },
+  ];
 
   const dataBuffer = Buffer.from(JSON.stringify(data));
   const messageId = await pubsub.topic(topicName).publishMessage({ data: dataBuffer });
