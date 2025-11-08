@@ -9,7 +9,7 @@ import authRoutes from "./routes/auth.js"
 import classesRoutes from "./routes/classes.js"
 import examsRoutes from "./routes/exams.js"
 import materialsRoutes from "./routes/materials.js"
-import studentsRoutes from "./routes/students"
+import studentsRoutes from "./routes/students.js"
 
 const app = new Hono()
 

@@ -1,5 +1,5 @@
 import { Hono } from "hono"
-import { sql } from "../db"
+import { sql } from "../db.js"
 import { requireAuth, type AuthVariables } from "../middleware/auth.js"
 
 const students = new Hono<{ Variables: AuthVariables }>()
