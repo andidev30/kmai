@@ -3,6 +3,8 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
+ENV VITE_API_BASE=https://kmai-api-1079341308711.us-central1.run.app/api/health
+
 COPY package*.json pnpm-lock.yaml ./
 RUN corepack enable && pnpm install --frozen-lockfile
 COPY . .
