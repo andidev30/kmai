@@ -12,6 +12,7 @@ import {
   type ExamSummary,
   type MaterialSummary,
 } from "@/lib/api"
+import { Badge } from "@/components/ui/badge"
 
 type ExamListPageProps = {
   classId: string
@@ -52,23 +53,42 @@ export function ExamListPage({ classId }: ExamListPageProps) {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage
   const currentExams = filteredExams.slice(indexOfFirstItem, indexOfLastItem)
 
+  const formatDate = (isoString: string) => {
+    const parsed = new Date(isoString)
+    if (Number.isNaN(parsed.getTime())) {
+      return isoString
+    }
+    return parsed.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
+  }
+
   const handleCreateExam = async (payload: {
+    title: string
     materialIds: string[]
     mcq: number
     essay: number
     uniquePerStudent: boolean
   }) => {
     setMaterialsError(null)
-    const { id } = await createExam(classId, payload)
-    setExams((prev) => [
-      ...prev,
-      {
-        id,
-        title: "Generated Exam",
-        date: new Date().toISOString().slice(0, 10),
-        duration: 90,
-      },
-    ])
+    const { id, status, uniquePerStudent } = await createExam(classId, payload)
+    const optimisticExam: ExamSummary = {
+      id,
+      title: payload.title,
+      date: new Date().toISOString(),
+      duration: 90,
+      status: status ?? "pending",
+      uniquePerStudent,
+    }
+    setExams((prev) => {
+      const updated = [optimisticExam, ...prev]
+      return updated.sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      )
+    })
+    setCurrentPage(1)
   }
 
   const materialOptions = materials.map((material) => ({
@@ -113,8 +133,20 @@ export function ExamListPage({ classId }: ExamListPageProps) {
                   {exam.title}
                 </CardTitle>
                 <p className="text-sm text-[#6b7280]">
-                  Date: {exam.date} | Duration: {exam.duration} mins
+                  Date: {formatDate(exam.date)} | Duration: {exam.duration} mins
                 </p>
+                <div className="mt-2">
+                  <Badge
+                    variant={exam.status === "done" ? "default" : "secondary"}
+                    className={
+                      exam.status === "done"
+                        ? "bg-green-600 text-white hover:bg-green-500"
+                        : "bg-amber-100 text-amber-800 hover:bg-amber-100"
+                    }
+                  >
+                    {exam.status === "done" ? "Ready to download" : "Generating"}
+                  </Badge>
+                </div>
               </div>
               <Button
                 variant="outline"

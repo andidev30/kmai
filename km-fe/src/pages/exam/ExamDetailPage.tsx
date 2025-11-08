@@ -1,16 +1,25 @@
 import { useEffect, useState } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { ArrowLeft, Download, Eye } from "lucide-react"
+import ReactMarkdown from "react-markdown"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import {
+  downloadExamArchive,
+  downloadStudentExamPdf,
   getExamDetail,
-  getExamDownloadUrl,
-  getStudentSubmissionUrl,
+  getStudentExamContent,
   uploadExamAnswer,
   type ExamDetail as ExamDetailResponse,
 } from "@/lib/api"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 type StudentRow = ExamDetailResponse["students"][number]
 
@@ -26,6 +35,12 @@ function ExamDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
+  const [isFetchingContent, setIsFetchingContent] = useState(false)
+  const [contentModal, setContentModal] = useState<{
+    isOpen: boolean
+    student?: StudentRow
+    content?: string
+  }>({ isOpen: false })
 
   const loadExam = () => {
     setIsLoading(true)
@@ -49,29 +64,92 @@ function ExamDetailPage() {
   }
 
   const handleDownloadExam = async () => {
+    if (!exam || exam.status !== "done") {
+      setMessage("Exam is still being generated. Please try again later.")
+      return
+    }
     try {
-      const { url } = await getExamDownloadUrl(examId)
-      window.open(url, "_blank")
+      const response = await downloadExamArchive(examId)
+      const blob = await response.blob()
+      const downloadUrl = URL.createObjectURL(blob)
+      const anchor = document.createElement("a")
+      anchor.href = downloadUrl
+      anchor.download = `${exam.title || "exam"}-questions.zip`
+      anchor.click()
+      setTimeout(() => URL.revokeObjectURL(downloadUrl), 1_000)
     } catch (cause) {
       setMessage(cause instanceof Error ? cause.message : "Unable to download exam questions")
     }
   }
 
-  const handleViewSubmission = async (student: StudentRow) => {
+  const handleViewSharedExam = () => {
+    if (!exam || exam.status !== "done") {
+      setMessage("Exam content is not ready yet.")
+      return
+    }
+    if (!exam.sharedQuestion?.content) {
+      setMessage("Exam content is unavailable.")
+      return
+    }
+    setContentModal({
+      isOpen: true,
+      student: undefined,
+      content: exam.sharedQuestion.content,
+    })
+  }
+
+  const handleViewExamContent = async (student: StudentRow) => {
+    if (!exam?.uniquePerStudent) {
+      setMessage("This exam uses the same questions for every student.")
+      return
+    }
+    if (exam.status !== "done") {
+      setMessage("Exam content is not ready yet.")
+      return
+    }
+    if (!student.questionId) {
+      setMessage("Questions for this student are not available yet.")
+      return
+    }
     try {
-      const { url } = await getStudentSubmissionUrl(examId, student.id)
-      window.open(url, "_blank")
+      setIsFetchingContent(true)
+      const { content } = await getStudentExamContent(examId, student.id)
+      setContentModal({
+        isOpen: true,
+        student,
+        content,
+      })
     } catch (cause) {
-      setMessage(cause instanceof Error ? cause.message : "Unable to open submission")
+      setMessage(cause instanceof Error ? cause.message : "Unable to load exam content")
+    } finally {
+      setIsFetchingContent(false)
     }
   }
 
-  const handleDownloadSubmission = async (student: StudentRow) => {
+  const handleDownloadExamContent = async (student: StudentRow) => {
+    if (!exam?.uniquePerStudent) {
+      setMessage("This exam uses the same questions for every student.")
+      return
+    }
+    if (exam.status !== "done") {
+      setMessage("Exam content is not ready yet.")
+      return
+    }
+    if (!student.questionId) {
+      setMessage("Questions for this student are not available yet.")
+      return
+    }
     try {
-      const { url } = await getStudentSubmissionUrl(examId, student.id)
-      window.open(url, "_blank")
+      const response = await downloadStudentExamPdf(examId, student.id)
+      const blob = await response.blob()
+      const downloadUrl = URL.createObjectURL(blob)
+      const anchor = document.createElement("a")
+      anchor.href = downloadUrl
+      anchor.download = `${student.name}-exam.pdf`
+      anchor.click()
+      setTimeout(() => URL.revokeObjectURL(downloadUrl), 1_000)
     } catch (cause) {
-      setMessage(cause instanceof Error ? cause.message : "Unable to download submission")
+      setMessage(cause instanceof Error ? cause.message : "Unable to download exam content")
     }
   }
 
@@ -104,6 +182,18 @@ function ExamDetailPage() {
     )
   }
 
+  const formatDate = (isoString: string) => {
+    const parsed = new Date(isoString)
+    if (Number.isNaN(parsed.getTime())) {
+      return isoString
+    }
+    return parsed.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
+  }
+
   return (
     <main className="min-h-screen bg-[#f9fafb] text-slate-900">
       <div className="mx-auto flex max-w-6xl flex-col gap-8">
@@ -121,26 +211,57 @@ function ExamDetailPage() {
               <CardTitle className="text-2xl font-semibold text-slate-900">
                 {exam.title}
               </CardTitle>
+              <Badge
+                variant={exam.status === "done" ? "default" : "secondary"}
+                className={
+                  exam.status === "done"
+                    ? "mt-2 inline-flex bg-green-600 text-white hover:bg-green-500"
+                    : "mt-2 inline-flex bg-amber-100 text-amber-800 hover:bg-amber-100"
+                }
+              >
+                {exam.status === "done" ? "Ready" : "Generating"}
+              </Badge>
               <p className="text-sm text-slate-500">{exam.description}</p>
             </CardHeader>
             <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1 text-sm text-slate-600">
                 <p>
-                  <span className="font-semibold text-slate-800">Date:</span> {exam.date}
+                  <span className="font-semibold text-slate-800">Date:</span>{" "}
+                  {formatDate(exam.date)}
                 </p>
                 <p>
                   <span className="font-semibold text-slate-800">Duration:</span>{" "}
                   {exam.duration} minutes
                 </p>
               </div>
-              <Button
-                className="flex items-center gap-2 rounded-full bg-[#2563eb] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1d4ed8]"
-                onClick={handleDownloadExam}
-              >
-                <Download className="h-4 w-4" />
-                Download all exam questions
-              </Button>
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  className="flex items-center gap-2 rounded-full bg-[#2563eb] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1d4ed8]"
+                  onClick={handleDownloadExam}
+                  disabled={exam.status !== "done"}
+                >
+                  <Download className="h-4 w-4" />
+                  {exam.status === "done" ? "Download all exam questions" : "Exam in progress"}
+                </Button>
+                {!exam.uniquePerStudent && (
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-2 rounded-full border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-600"
+                    onClick={handleViewSharedExam}
+                    disabled={exam.status !== "done" || !exam.sharedQuestion}
+                  >
+                    <Eye className="h-4 w-4" />
+                    View questions
+                  </Button>
+                )}
+              </div>
             </CardContent>
+            {exam.status !== "done" && (
+              <p className="px-6 pb-4 text-sm text-amber-600">
+                Exam questions are being prepared by the AI. You’ll get a download link once the
+                status turns ready.
+              </p>
+            )}
           </Card>
         </section>
 
@@ -204,24 +325,28 @@ function ExamDetailPage() {
                     >
                       Upload photo answer
                     </Button>
-                    <Button
-                      variant="outline"
-                      className="flex items-center gap-2 rounded-full border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-600"
-                      onClick={() => handleViewSubmission(student)}
-                      disabled={student.status === "not-submitted"}
-                    >
-                      <Eye className="h-4 w-4" />
-                      View
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex items-center gap-2 rounded-full border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-600"
-                      onClick={() => handleDownloadSubmission(student)}
-                      disabled={student.status === "not-submitted"}
-                    >
-                      <Download className="h-4 w-4" />
-                      Download
-                    </Button>
+                    {exam.uniquePerStudent && (
+                      <>
+                        <Button
+                          variant="outline"
+                          className="flex items-center gap-2 rounded-full border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-600"
+                          onClick={() => handleViewExamContent(student)}
+                          disabled={exam.status !== "done" || isFetchingContent}
+                        >
+                          <Eye className="h-4 w-4" />
+                          View questions
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="flex items-center gap-2 rounded-full border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-600"
+                          onClick={() => handleDownloadExamContent(student)}
+                          disabled={exam.status !== "done"}
+                        >
+                          <Download className="h-4 w-4" />
+                          Download PDF
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </Card>
               ))
@@ -235,6 +360,27 @@ function ExamDetailPage() {
           </p>
         )}
       </div>
+      <Dialog
+        open={contentModal.isOpen}
+        onOpenChange={(open) => setContentModal((prev) => ({ ...prev, isOpen: open }))}
+      >
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {contentModal.student
+                ? `Exam for ${contentModal.student.name}`
+                : "Exam questions"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="prose max-w-none text-sm text-slate-700">
+            {contentModal.content ? (
+              <ReactMarkdown>{contentModal.content}</ReactMarkdown>
+            ) : (
+              "No exam content available."
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </main>
   )
 }

@@ -7,7 +7,7 @@ import {
   type StoredMaterialFile,
   type UploadableMaterialFile,
 } from "../lib/gcs.js"
-import { publishMaterialMessage } from "../lib/pubsub.js"
+import { publishExamMessage, publishMaterialMessage } from "../lib/pubsub.js"
 
 const classes = new Hono<{ Variables: AuthVariables }>()
 
@@ -230,7 +230,7 @@ classes.get("/:classId/exams", async (c) => {
     }
 
     const rows =
-      await sql`select id, title, exam_date as "date", duration from exams where class_id = ${classId} order by exam_date desc`
+      await sql`select id, title, exam_date as "date", duration, status, unique_per_student as "uniquePerStudent" from exams where class_id = ${classId} order by created_at desc`
     return c.json({ items: rows })
   } catch (error) {
     console.error("[classes:exams:list] query failed", error)
@@ -242,14 +242,31 @@ classes.post("/:classId/exams", async (c) => {
   const classId = c.req.param("classId")
   const userId = c.get("authUserId")
   const body = await c.req.json<{
+    title?: string
     materialIds?: string[]
     mcq?: number
     essay?: number
     uniquePerStudent?: boolean
   }>()
 
-  if (!body.materialIds?.length) {
+  const materialIds = Array.from(new Set(body.materialIds ?? [])).filter(Boolean)
+  if (!materialIds.length) {
     return c.json({ message: "At least one material must be selected" }, 400)
+  }
+
+  const mcq = Number(body.mcq ?? 0)
+  const essay = Number(body.essay ?? 0)
+  if (!Number.isFinite(mcq) || !Number.isFinite(essay) || mcq < 0 || essay < 0) {
+    return c.json({ message: "mcq and essay must be positive numbers" }, 400)
+  }
+  if (mcq + essay <= 0) {
+    return c.json({ message: "At least one question must be requested" }, 400)
+  }
+
+  const uniquePerStudent = Boolean(body.uniquePerStudent)
+  const title = typeof body.title === "string" ? body.title.trim() : ""
+  if (!title) {
+    return c.json({ message: "Title is required" }, 400)
   }
 
   try {
@@ -259,9 +276,40 @@ classes.post("/:classId/exams", async (c) => {
       return c.json({ message: "Class not found" }, 404)
     }
 
+    const settings = {
+      materialIds,
+      mcq,
+      essay,
+      uniquePerStudent,
+    }
+
     const rows =
-      await sql`insert into exams (class_id, title, exam_date, duration, payload) values (${classId}, 'Generated Exam', now(), 90, ${JSON.stringify(body)}) returning id`
-    return c.json({ id: rows[0]?.id }, 201)
+      await sql<{ id: string; status: string; uniquePerStudent: boolean }[]>`insert into exams (class_id, title, exam_date, duration, unique_per_student) values (${classId}, ${title}, now(), 90, ${uniquePerStudent}) returning id, status, unique_per_student as "uniquePerStudent"`
+    const exam = rows[0]
+
+    if (exam?.id) {
+      publishExamMessage({
+        examId: exam.id,
+        classId,
+        materialIds,
+        settings: {
+          mcq,
+          essay,
+          uniquePerStudent,
+        },
+      }).catch((error) =>
+        console.error("[classes:exams:create] failed to publish exam message", error),
+      )
+    }
+
+    return c.json(
+      {
+        id: exam?.id,
+        status: exam?.status ?? "pending",
+        uniquePerStudent: exam?.uniquePerStudent ?? uniquePerStudent,
+      },
+      201,
+    )
   } catch (error) {
     console.error("[classes:exams:create] insert failed", error)
     return c.json({ message: "Internal server error" }, 500)

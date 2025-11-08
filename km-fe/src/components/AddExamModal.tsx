@@ -17,6 +17,7 @@ interface AddExamModalProps {
   onClose: () => void
   materials: MaterialOption[]
   onSubmit: (payload: {
+    title: string
     materialIds: string[]
     mcq: number
     essay: number
@@ -33,6 +34,7 @@ export function AddExamModal({ isOpen, onClose, materials, onSubmit }: AddExamMo
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([])
   const [mcqQuestions, setMcqQuestions] = useState<number | string>("")
   const [essayQuestions, setEssayQuestions] = useState<number | string>("")
+  const [examName, setExamName] = useState("")
   const [error, setError] = useState("")
   const [generateUniqueQuestions, setGenerateUniqueQuestions] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -49,6 +51,7 @@ export function AddExamModal({ isOpen, onClose, materials, onSubmit }: AddExamMo
     setSelectedMaterials([])
     setMcqQuestions("")
     setEssayQuestions("")
+    setExamName("")
     setGenerateUniqueQuestions(false)
   }
 
@@ -66,9 +69,15 @@ export function AddExamModal({ isOpen, onClose, materials, onSubmit }: AddExamMo
       return
     }
 
+    if (!examName.trim()) {
+      setError("Please enter an exam name.")
+      return
+    }
+
     try {
       setIsSubmitting(true)
       await onSubmit({
+        title: examName.trim(),
         materialIds: selectedMaterials,
         mcq: Number(mcqQuestions || 0),
         essay: Number(essayQuestions || 0),
@@ -91,6 +100,17 @@ export function AddExamModal({ isOpen, onClose, materials, onSubmit }: AddExamMo
           <DialogTitle>Add New Exam</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-6 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="exam-name" className="text-black">Exam Name</Label>
+            <Input
+              id="exam-name"
+              type="text"
+              value={examName}
+              onChange={(e) => setExamName(e.target.value)}
+              placeholder="e.g. Midterm Assessment"
+              className="text-black"
+            />
+          </div>
           <div className="grid gap-2">
             <Label htmlFor="materials" className="text-black">Select List Materials for Exam</Label>
             <div className="h-48 overflow-y-auto rounded-md border p-4">

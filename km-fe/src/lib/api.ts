@@ -66,6 +66,7 @@ export type MaterialFile = {
 }
 
 export type MaterialStatus = "pending" | "done" | string
+export type ExamStatus = "pending" | "done" | string
 
 export type MaterialSummary = {
   id: string
@@ -124,6 +125,8 @@ export type ExamSummary = {
   title: string
   date: string
   duration: number
+  status: ExamStatus
+  uniquePerStudent: boolean
 }
 
 export async function listClassExams(classId: string) {
@@ -132,9 +135,20 @@ export async function listClassExams(classId: string) {
 
 export async function createExam(
   classId: string,
-  payload: { materialIds: string[]; mcq: number; essay: number; uniquePerStudent: boolean },
+  payload: {
+    title: string
+    materialIds: string[]
+    mcq: number
+    essay: number
+    uniquePerStudent: boolean
+  },
 ) {
-  return apiRequest<{ id: string }>(`/classes/${classId}/exams`, { body: payload })
+  return apiRequest<{ id: string; status: ExamStatus; uniquePerStudent: boolean }>(
+    `/classes/${classId}/exams`,
+    {
+      body: payload,
+    },
+  )
 }
 
 export type ExamDetail = {
@@ -143,7 +157,16 @@ export type ExamDetail = {
   description: string
   date: string
   duration: number
-  students: Array<{ id: string; name: string; status: "graded" | "grading" | "not-submitted" }>
+  status: ExamStatus
+  uniquePerStudent: boolean
+  sharedQuestion?: { id: string; content: string } | null
+  students: Array<{
+    id: string
+    name: string
+    status: "graded" | "grading" | "not-submitted"
+    questionId?: string | null
+    questionContent?: string | null
+  }>
 }
 
 export async function getExamDetail(examId: string) {
@@ -158,12 +181,22 @@ export async function uploadExamAnswer(examId: string, studentId: string, file: 
   })
 }
 
-export async function getExamDownloadUrl(examId: string) {
-  return apiRequest<{ url: string }>(`/exams/${examId}/download`)
+export async function downloadExamArchive(examId: string) {
+  return apiRequest<Response>(`/exams/${examId}/download`, { raw: true })
 }
 
 export async function getStudentSubmissionUrl(examId: string, studentId: string) {
   return apiRequest<{ url: string }>(`/exams/${examId}/students/${studentId}/download`)
+}
+
+export async function getStudentExamContent(examId: string, studentId: string) {
+  return apiRequest<{ content: string }>(`/exams/${examId}/students/${studentId}/exam`)
+}
+
+export async function downloadStudentExamPdf(examId: string, studentId: string) {
+  return apiRequest<Response>(`/exams/${examId}/students/${studentId}/exam/download`, {
+    raw: true,
+  })
 }
 
 export type StudentProfile = {

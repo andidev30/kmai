@@ -5,6 +5,7 @@ type RequestOptions = {
   body?: unknown
   headers?: Record<string, string>
   rawBody?: BodyInit
+  raw?: boolean
 }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -40,6 +41,10 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       .json()
       .catch(() => ({ message: response.statusText }))
     throw new Error(message?.message ?? `Request failed with status ${response.status}`)
+  }
+
+  if (options.raw) {
+    return response as unknown as T
   }
 
   const contentType = response.headers.get("content-type") ?? ""

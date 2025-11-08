@@ -55,18 +55,29 @@ create table if not exists exams (
   description text,
   exam_date date not null default current_date,
   duration integer not null default 90,
-  payload jsonb,
-  question_bundle_url text,
+  status text not null default 'pending',
+  unique_per_student boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists exam_questions (
+  id uuid primary key default uuid_generate_v4(),
+  exam_id uuid not null references exams(id) on delete cascade,
+  student_id uuid references students(id) on delete set null,
+  exam_content text not null,
   created_at timestamptz not null default now()
 );
 
 create table if not exists exam_students (
+  id uuid primary key default uuid_generate_v4(),
   exam_id uuid not null references exams(id) on delete cascade,
   student_id uuid not null references students(id) on delete cascade,
+  exam_question_id uuid references exam_questions(id) on delete set null,
   status text not null default 'not-submitted',
+  answer_files jsonb not null default '[]'::jsonb,
   answer_url text,
   created_at timestamptz not null default now(),
-  primary key (exam_id, student_id)
+  unique (exam_id, student_id)
 );
 
 create table if not exists student_profiles (
