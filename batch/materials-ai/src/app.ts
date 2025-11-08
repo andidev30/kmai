@@ -1,5 +1,6 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
+import "dotenv/config"
 
 import { generate } from './llm.js'
 

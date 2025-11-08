@@ -2,13 +2,14 @@
   "name": "materials-ai",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch src/app.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/app.js"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
     "@hono/node-server": "^1.19.6",
+    "dotenv": "^17.2.3",
     "hono": "^4.10.4"
   },
   "devDependencies": {
