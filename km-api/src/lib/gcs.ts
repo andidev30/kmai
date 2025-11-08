@@ -4,7 +4,7 @@ import { Storage } from "@google-cloud/storage"
 
 const storage = new Storage({
   projectId: process.env.GCP_PROJECT || 'hackathon-gcp-cloud-run',
-  keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS || '/Users/andi/Me/hackathon/kmai/km-api/hackathon-pub-sub.json',
+  keyFilename: process.env.NODE_ENV === 'development' ? '/Users/andi/Me/hackathon/kmai/km-api/hackathon-pub-sub.json' : undefined,
 })
 
 const defaultBucketName = process.env.GCS_BUCKET || 'kmai_upload'
