@@ -5,10 +5,10 @@ import { logger } from "hono/logger"
 import { cors } from "hono/cors"
 import { serve } from "@hono/node-server"
 
-import authRoutes from "./routes/auth"
-import classesRoutes from "./routes/classes"
-import examsRoutes from "./routes/exams"
-import materialsRoutes from "./routes/materials"
+import authRoutes from "./routes/auth.js"
+import classesRoutes from "./routes/classes.js"
+import examsRoutes from "./routes/exams.js"
+import materialsRoutes from "./routes/materials.js"
 import studentsRoutes from "./routes/students"
 
 const app = new Hono()
@@ -37,6 +37,7 @@ const port = Number(process.env.PORT ?? 8787)
 serve({
   fetch: app.fetch,
   port,
+  hostname: "0.0.0.0",
 })
 
 console.log(`🚀 km-api server running on http://localhost:${port}`)

@@ -1,5 +1,5 @@
 import { Hono } from "hono"
-import { sql } from "../db"
+import { sql } from "../db.js"
 
 const auth = new Hono()
 

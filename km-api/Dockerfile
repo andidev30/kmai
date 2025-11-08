@@ -1,24 +1,27 @@
-# syntax=docker/dockerfile:1
+FROM node:22-alpine AS base
 
-FROM node:20-alpine AS base
+FROM base AS builder
+
+RUN apk add --no-cache gcompat
 WORKDIR /app
 
-FROM base AS deps
-COPY package*.json ./
-RUN npm install
+COPY package*json tsconfig.json src ./
 
-FROM base AS build
-ENV NODE_ENV=development
-COPY package*.json tsconfig.json ./
-COPY --from=deps /app/node_modules ./node_modules
-COPY src ./src
-RUN npm run build
+RUN npm ci && \
+    npm run build && \
+    npm prune --production
 
-FROM base AS production
-ENV NODE_ENV=production
-COPY package*.json ./
-COPY --from=deps /app/node_modules ./node_modules
-RUN npm prune --omit=dev
-COPY --from=build /app/dist ./dist
-EXPOSE 8787
-CMD ["node", "dist/app.js"]
+FROM base AS runner
+WORKDIR /app
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 hono
+
+COPY --from=builder --chown=hono:nodejs /app/node_modules /app/node_modules
+COPY --from=builder --chown=hono:nodejs /app/dist /app/dist
+COPY --from=builder --chown=hono:nodejs /app/package.json /app/package.json
+
+USER hono
+EXPOSE 3000
+
+CMD ["node", "/app/dist/index.js"]
