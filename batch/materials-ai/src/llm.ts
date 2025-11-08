@@ -35,10 +35,10 @@ const config = {
 const model = 'gemini-2.5-flash-lite';
 
 const ai = new GoogleGenAI({
-  project: 'hackathon-gcp-cloud-run',
+  project: process.env.GCP_PROJECT || 'hackathon-gcp-cloud-run',
   vertexai: true,
   googleAuthOptions: {
-    keyFilename: "./hackathon-pub-sub.json",
+    keyFilename: process.env.NODE_ENV === 'development' ? '/Users/andi/Me/hackathon/kmai/km-api/hackathon-pub-sub.json' : undefined
   }
 });
 

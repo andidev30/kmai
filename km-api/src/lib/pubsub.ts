@@ -5,9 +5,9 @@ const topicName = process.env.PUBSUB_TOPIC_MATERIALS
 const pubsub =
   topicName && process.env.PUBSUB_TOPIC_MATERIALS !== "disabled"
     ? new PubSub({
-        projectId: process.env.GCP_PROJECT || 'hackathon-gcp-cloud-run',
-        keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS || '/Users/andi/Me/hackathon/kmai/km-api/hackathon-pub-sub.json',
-      })
+      projectId: process.env.GCP_PROJECT || 'hackathon-gcp-cloud-run',
+      keyFilename: process.env.NODE_ENV === 'development' ? '/Users/andi/Me/hackathon/kmai/km-api/hackathon-pub-sub.json' : undefined,
+    })
     : null
 
 type MaterialMessage = {
