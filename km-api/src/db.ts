@@ -1,24 +1,35 @@
-import postgres from "postgres"
+import postgres from "postgres";
 
-const databaseUrl = process.env.DATABASE_URL
+const dbHost = process.env.DB_USER;
+const dbUser = process.env.DB_USER;
+const dbPass = process.env.DB_PASS;
+const dbName = process.env.DB_NAME;
+const dbPort = process.env.DB_PORT;
 
-if (!databaseUrl) {
-  console.warn("[km-api] DATABASE_URL is not set. API routes will use mock data.")
-}
+const useDatabaseUrl = !!process.env.DATABASE_URL;
 
-type SqlClient = ReturnType<typeof postgres>
+type SqlClient = ReturnType<typeof postgres>;
 
-export const sql: SqlClient = databaseUrl
-  ? postgres(databaseUrl, {
+export const sql: SqlClient = useDatabaseUrl
+  ? postgres(process.env.DATABASE_URL!, {
       max: Number(process.env.DB_POOL_MAX ?? 10),
       prepare: false,
     })
-  : (async () => {
-      throw new Error("DATABASE_URL is required to execute queries")
-    }) as unknown as SqlClient
+  : postgres({
+      host: dbHost,
+      user: dbUser,
+      password: dbPass,
+      database: dbName,
+      port: Number(dbPort ?? 5432),
+      max: Number(process.env.DB_POOL_MAX ?? 10),
+      prepare: false,
+    });
 
-export type { SqlClient }
+export type { SqlClient };
 
-export async function withTransaction<T>(callback: (client: SqlClient) => Promise<T>): Promise<T> {
-  return sql.begin((trx) => callback(trx as SqlClient)) as Promise<T>
+// Transaction helper
+export async function withTransaction<T>(
+  callback: (client: SqlClient) => Promise<T>
+): Promise<T> {
+  return sql.begin((trx) => callback(trx as SqlClient)) as Promise<T>;
 }
