@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useParams, useSearchParams, useNavigate } from "react-router-dom"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Download } from "lucide-react"
+import { ArrowLeft, Download, File as FileIcon } from "lucide-react"
 import { getMaterialDetail, type MaterialDetail } from "@/lib/api"
 
 function MaterialDetailPage() {
@@ -67,13 +67,6 @@ function MaterialDetailPage() {
                 <CardTitle className="text-2xl font-bold">{material.title}</CardTitle>
                 <p className="text-sm text-muted-foreground">{material.description}</p>
               </div>
-              <Button
-                className="flex items-center gap-2 rounded-full bg-[#2563eb] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1d4ed8]"
-                onClick={() => window.open(material.fileUrl, "_blank")}
-              >
-                <Download className="h-4 w-4" />
-                Download file
-              </Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -87,10 +80,36 @@ function MaterialDetailPage() {
                   <div>{material.dateStart ?? "—"}</div>
                   <div className="font-medium text-gray-500">End Date</div>
                   <div>{material.dateEnd ?? "—"}</div>
-                  <div className="font-medium text-gray-500">Source</div>
-                  <div>{material.source}</div>
                 </div>
               </div>
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Attachments</h3>
+              {material.files?.length ? (
+                <ul className="space-y-3">
+                  {material.files.map((file) => (
+                    <li key={file.gcsUri} className="flex items-center justify-between rounded-lg border border-slate-200 p-3">
+                      <div className="flex items-center gap-3 text-sm text-slate-700">
+                        <FileIcon className="h-4 w-4 text-slate-500" />
+                        <div className="flex flex-col">
+                          <span className="font-medium">{file.name}</span>
+                          <span className="text-xs text-slate-500">{file.mimeType}</span>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        className="flex items-center gap-2 rounded-full border-[#2563eb] px-4 py-2 text-sm font-semibold text-[#2563eb] transition hover:bg-[#2563eb] hover:text-white"
+                        onClick={() => window.open(file.uri, "_blank")}
+                      >
+                        <Download className="h-4 w-4" />
+                        Download
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted-foreground">No files attached.</p>
+              )}
             </div>
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Content</h3>

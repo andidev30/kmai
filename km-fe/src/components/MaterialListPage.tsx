@@ -47,18 +47,17 @@ export function MaterialListPage({ classId }: MaterialListPageProps) {
     description?: string
     dateStart?: string
     dateEnd?: string
-    file: File
+    files: File[]
   }) => {
-    const { id } = await createClassMaterial(classId, payload)
-    const fileUrl = URL.createObjectURL(payload.file)
+    const { id, files } = await createClassMaterial(classId, payload)
     setMaterials((prev) => [
-      ...prev,
       {
         id,
         title: payload.title,
         description: payload.description ?? "",
-        fileUrl,
+        files,
       },
+      ...prev,
     ])
   }
 
@@ -99,6 +98,11 @@ export function MaterialListPage({ classId }: MaterialListPageProps) {
                   {material.title}
                 </CardTitle>
                 <p className="text-sm text-[#6b7280]">{material.description}</p>
+                {material.files?.length ? (
+                  <p className="text-xs text-[#2563eb]">
+                    {material.files.length} attachment{material.files.length > 1 ? "s" : ""}
+                  </p>
+                ) : null}
               </div>
               <Button
                 variant="outline"

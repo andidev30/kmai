@@ -58,11 +58,18 @@ export async function addClassStudent(
   return apiRequest<{ id: string }>(`/classes/${classId}/students`, { body: payload })
 }
 
+export type MaterialFile = {
+  uri: string
+  gcsUri: string
+  mimeType: string
+  name: string
+}
+
 export type MaterialSummary = {
   id: string
   title: string
   description: string
-  fileUrl: string
+  files: MaterialFile[]
 }
 
 export async function listClassMaterials(classId: string) {
@@ -76,17 +83,16 @@ export async function createClassMaterial(
     description?: string
     dateStart?: string
     dateEnd?: string
-    file: File
+    files: File[]
   },
 ) {
-  const form = buildFormData({
-    title: payload.title,
-    description: payload.description,
-    dateStart: payload.dateStart,
-    dateEnd: payload.dateEnd,
-    file: payload.file,
-  })
-  return apiRequest<{ id: string }>(`/classes/${classId}/materials`, {
+  const form = new FormData()
+  form.append("title", payload.title)
+  if (payload.description) form.append("description", payload.description)
+  if (payload.dateStart) form.append("dateStart", payload.dateStart)
+  if (payload.dateEnd) form.append("dateEnd", payload.dateEnd)
+  payload.files.forEach((file) => form.append("files", file))
+  return apiRequest<{ id: string; files: MaterialFile[] }>(`/classes/${classId}/materials`, {
     method: "POST",
     rawBody: form,
   })
@@ -97,8 +103,7 @@ export type MaterialDetail = {
   title: string
   description: string
   content: string
-  fileUrl: string
-  source: string
+  files: MaterialFile[]
   dateStart?: string
   dateEnd?: string
 }

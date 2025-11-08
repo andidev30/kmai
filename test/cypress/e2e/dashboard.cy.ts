@@ -47,7 +47,14 @@ describe("Dashboard", () => {
             id: "material-1",
             title: "Algebra Intro",
             description: "Basics of algebra",
-            fileUrl: "/files/algebra.pdf",
+            files: [
+              {
+                uri: "/files/algebra.pdf",
+                gcsUri: "gs://bucket/materials/material-1/algebra.pdf",
+                mimeType: "application/pdf",
+                name: "algebra.pdf",
+              },
+            ],
           },
         ],
       },

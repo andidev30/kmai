@@ -21,7 +21,7 @@ interface AddMaterialModalProps {
     description?: string
     dateStart?: string
     dateEnd?: string
-    file: File
+    files: File[]
   }) => Promise<void> | void
 }
 
@@ -37,7 +37,7 @@ export function AddMaterialModal({ isOpen, onClose, onSubmit }: AddMaterialModal
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.length) {
-      setFiles([e.target.files[0]])
+      setFiles((prev) => [...prev, ...Array.from(e.target.files ?? [])])
     }
   };
 
@@ -46,7 +46,7 @@ export function AddMaterialModal({ isOpen, onClose, onSubmit }: AddMaterialModal
     e.stopPropagation();
     setIsDragOver(false);
     if (e.dataTransfer.files?.length) {
-      setFiles([e.dataTransfer.files[0]])
+      setFiles((prev) => [...prev, ...Array.from(e.dataTransfer.files ?? [])])
     }
   };
 
@@ -69,7 +69,7 @@ export function AddMaterialModal({ isOpen, onClose, onSubmit }: AddMaterialModal
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     if (!name || files.length === 0) {
-      setError("Name and file are required.")
+      setError("Name and at least one file are required.")
       return
     }
 
@@ -87,7 +87,7 @@ export function AddMaterialModal({ isOpen, onClose, onSubmit }: AddMaterialModal
         description: description || undefined,
         dateStart: startDate || undefined,
         dateEnd: endDate || undefined,
-        file: files[0],
+        files,
       })
       setName("")
       setStartDate("")
@@ -146,7 +146,7 @@ export function AddMaterialModal({ isOpen, onClose, onSubmit }: AddMaterialModal
             </div>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="file" className="text-black">File</Label>
+            <Label htmlFor="file" className="text-black">Files</Label>
             <div
               onDrop={handleDrop}
               onDragOver={handleDragOver}
@@ -158,8 +158,9 @@ export function AddMaterialModal({ isOpen, onClose, onSubmit }: AddMaterialModal
               <Input
                 id="material-file-input"
                 type="file"
+                multiple
                 onChange={handleFileChange}
-                accept=".txt,.pdf,.docx,.ppt,.jpg,.jpeg,.png,.gif,.svg,.webp"
+                accept=".txt,.pdf,.docx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.svg,.webp,.mp4,.mp3"
                 className="hidden text-black"
               />
               <Button

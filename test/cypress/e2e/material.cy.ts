@@ -8,6 +8,7 @@ describe("Material detail", () => {
   })
 
   it("displays material details and allows download", () => {
+    const fileUri = "http://localhost:5173/files/algebra.pdf"
     cy.intercept("GET", `${apiUrl}/materials/material-1`, {
       statusCode: 200,
       body: {
@@ -15,8 +16,14 @@ describe("Material detail", () => {
         title: "Algebra Basics",
         description: "Introduction to algebraic expressions",
         content: "Sample content for algebra.",
-        fileUrl: "http://localhost:5173/files/algebra.pdf",
-        source: "manual",
+        files: [
+          {
+            uri: fileUri,
+            gcsUri: "gs://bucket/materials/material-1/algebra.pdf",
+            mimeType: "application/pdf",
+            name: "algebra.pdf",
+          },
+        ],
         dateStart: "2025-01-01",
         dateEnd: "2025-06-01",
       },
@@ -33,8 +40,10 @@ describe("Material detail", () => {
     cy.contains("Algebra Basics").should("be.visible")
     cy.contains("Introduction to algebraic expressions").should("be.visible")
     cy.contains("Details").should("be.visible")
-    cy.contains("Download file").click()
-    cy.get("@windowOpen").should("have.been.calledWith", "http://localhost:5173/files/algebra.pdf", "_blank")
+    cy.contains("Attachments").should("be.visible")
+    cy.contains("algebra.pdf").should("be.visible")
+    cy.contains("Download").click()
+    cy.get("@windowOpen").should("have.been.calledWith", fileUri, "_blank")
   })
 
   it("handles missing material gracefully", () => {

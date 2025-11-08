@@ -1,6 +1,12 @@
 import { Hono } from "hono"
 import { sql } from "../db.js"
 import { requireAuth, type AuthVariables } from "../middleware/auth.js"
+import {
+  deleteMaterialFile,
+  uploadMaterialFile,
+  type StoredMaterialFile,
+  type UploadableMaterialFile,
+} from "../lib/gcs.js"
 
 const classes = new Hono<{ Variables: AuthVariables }>()
 
@@ -114,7 +120,7 @@ classes.get("/:classId/materials", async (c) => {
     }
 
     const rows =
-      await sql`select id, title, description, file_url as "fileUrl" from materials where class_id = ${classId} and created_by = ${userId} order by created_at desc`
+      await sql`select id, title, description, files from materials where class_id = ${classId} and created_by = ${userId} order by created_at desc`
     return c.json({ items: rows })
   } catch (error) {
     console.error("[classes:materials:list] query failed", error)
@@ -125,24 +131,29 @@ classes.get("/:classId/materials", async (c) => {
 classes.post("/:classId/materials", async (c) => {
   const classId = c.req.param("classId")
   const userId = c.get("authUserId")
-  const formData = await c.req.parseBody()
-  const title = typeof formData["title"] === "string" ? formData["title"] : undefined
-  const description = typeof formData["description"] === "string" ? formData["description"] : undefined
-  const file = formData["file"]
-  const dateStart = typeof formData["dateStart"] === "string" ? formData["dateStart"] : undefined
-  const dateEnd = typeof formData["dateEnd"] === "string" ? formData["dateEnd"] : undefined
-  const source = typeof formData["source"] === "string" ? formData["source"].trim() : ""
+  const formData = await c.req.formData()
 
-  if (!title || !file) {
-    return c.json({ message: "Title and file are required" }, 400)
+  const getString = (key: string) => {
+    const value = formData.get(key)
+    return typeof value === "string" ? value : undefined
   }
 
-  const fileUrl =
-    typeof file === "string"
-      ? file
-      : file && "name" in file
-        ? `/uploads/${Date.now()}-${file.name}`
-        : "#"
+  const title = getString("title")
+  const description = getString("description")
+  const dateStart = getString("dateStart")
+  const dateEnd = getString("dateEnd")
+
+  const fileEntries = [...formData.getAll("files"), ...formData.getAll("file")]
+  const normalizedFiles: UploadableMaterialFile[] = []
+  for (const entry of fileEntries) {
+    if (entry && typeof entry === "object" && "arrayBuffer" in entry && typeof entry.arrayBuffer === "function") {
+      normalizedFiles.push(entry as UploadableMaterialFile)
+    }
+  }
+
+  if (!title || normalizedFiles.length === 0) {
+    return c.json({ message: "Title and at least one file are required" }, 400)
+  }
 
   try {
     const ownsClass =
@@ -151,9 +162,35 @@ classes.post("/:classId/materials", async (c) => {
       return c.json({ message: "Class not found" }, 404)
     }
 
-    const rows =
-      await sql`insert into materials (class_id, title, description, file_url, source, date_start, date_end, created_by) values (${classId}, ${title}, ${description ?? null}, ${fileUrl}, ${source || "Uploaded material"}, ${dateStart ?? null}, ${dateEnd ?? null}, ${userId}) returning id`
-    return c.json({ id: rows[0]?.id }, 201)
+    const uploadedFiles: Array<StoredMaterialFile & { objectPath: string }> = []
+    try {
+      for (const file of normalizedFiles) {
+        const uploaded = await uploadMaterialFile(file, { classId })
+        uploadedFiles.push(uploaded)
+      }
+    } catch (uploadError) {
+      await Promise.all(
+        uploadedFiles.map((meta) => deleteMaterialFile(meta.gcsUri).catch(() => undefined)),
+      )
+      console.error("[classes:materials:create] upload failed", uploadError)
+      return c.json({ message: "Failed to upload files" }, 500)
+    }
+
+    const filesToPersist: StoredMaterialFile[] = uploadedFiles.map(
+      ({ gcsUri, mimeType, name, uri }) => ({ gcsUri, mimeType, name, uri }),
+    )
+
+    let createdMaterialId: string | undefined
+    try {
+      const rows =
+        await sql`insert into materials (class_id, title, description, files, date_start, date_end, created_by) values (${classId}, ${title}, ${description ?? null}, ${sql.json(filesToPersist)}, ${dateStart ?? null}, ${dateEnd ?? null}, ${userId}) returning id`
+      createdMaterialId = rows[0]?.id
+    } catch (dbError) {
+      await Promise.all(filesToPersist.map((meta) => deleteMaterialFile(meta.gcsUri)))
+      throw dbError
+    }
+
+    return c.json({ id: createdMaterialId, files: filesToPersist }, 201)
   } catch (error) {
     console.error("[classes:materials:create] insert failed", error)
     return c.json({ message: "Internal server error" }, 500)
