@@ -47,6 +47,7 @@ describe("Dashboard", () => {
             id: "material-1",
             title: "Algebra Intro",
             description: "Basics of algebra",
+            status: "pending",
             files: [
               {
                 uri: "/files/algebra.pdf",

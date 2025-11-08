@@ -65,10 +65,13 @@ export type MaterialFile = {
   name: string
 }
 
+export type MaterialStatus = "pending" | "done" | string
+
 export type MaterialSummary = {
   id: string
   title: string
   description: string
+  status: MaterialStatus
   files: MaterialFile[]
 }
 
@@ -92,10 +95,13 @@ export async function createClassMaterial(
   if (payload.dateStart) form.append("dateStart", payload.dateStart)
   if (payload.dateEnd) form.append("dateEnd", payload.dateEnd)
   payload.files.forEach((file) => form.append("files", file))
-  return apiRequest<{ id: string; files: MaterialFile[] }>(`/classes/${classId}/materials`, {
-    method: "POST",
-    rawBody: form,
-  })
+  return apiRequest<{ id: string; status: MaterialStatus; files: MaterialFile[] }>(
+    `/classes/${classId}/materials`,
+    {
+      method: "POST",
+      rawBody: form,
+    },
+  )
 }
 
 export type MaterialDetail = {
@@ -103,6 +109,7 @@ export type MaterialDetail = {
   title: string
   description: string
   content: string
+  status: MaterialStatus
   files: MaterialFile[]
   dateStart?: string
   dateEnd?: string

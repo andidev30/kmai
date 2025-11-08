@@ -11,7 +11,7 @@ materials.get("/:materialId", async (c) => {
   const userId = c.get("authUserId")
   try {
     const rows =
-      await sql`select m.id, m.title, m.description, m.content, m.files, m.date_start as "dateStart", m.date_end as "dateEnd"
+      await sql`select m.id, m.title, m.description, m.content, m.files, m.status, m.date_start as "dateStart", m.date_end as "dateEnd"
         from materials m
         inner join classes c2 on c2.id = m.class_id
         where m.id = ${materialId} and c2.created_by = ${userId}

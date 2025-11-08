@@ -7,6 +7,7 @@ import {
   type StoredMaterialFile,
   type UploadableMaterialFile,
 } from "../lib/gcs.js"
+import { publishMaterialMessage } from "../lib/pubsub.js"
 
 const classes = new Hono<{ Variables: AuthVariables }>()
 
@@ -120,7 +121,7 @@ classes.get("/:classId/materials", async (c) => {
     }
 
     const rows =
-      await sql`select id, title, description, files from materials where class_id = ${classId} and created_by = ${userId} order by created_at desc`
+      await sql`select id, title, description, files, status from materials where class_id = ${classId} and created_by = ${userId} order by created_at desc`
     return c.json({ items: rows })
   } catch (error) {
     console.error("[classes:materials:list] query failed", error)
@@ -180,17 +181,38 @@ classes.post("/:classId/materials", async (c) => {
       ({ gcsUri, mimeType, name, uri }) => ({ gcsUri, mimeType, name, uri }),
     )
 
-    let createdMaterialId: string | undefined
+    let createdMaterial:
+      | {
+          id: string
+          status: string
+        }
+      | undefined
     try {
       const rows =
-        await sql`insert into materials (class_id, title, description, files, date_start, date_end, created_by) values (${classId}, ${title}, ${description ?? null}, ${sql.json(filesToPersist)}, ${dateStart ?? null}, ${dateEnd ?? null}, ${userId}) returning id`
-      createdMaterialId = rows[0]?.id
+        await sql<{ id: string; status: string }[]>`insert into materials (class_id, title, description, files, date_start, date_end, created_by) values (${classId}, ${title}, ${description ?? null}, ${sql.json(filesToPersist)}, ${dateStart ?? null}, ${dateEnd ?? null}, ${userId}) returning id, status`
+      createdMaterial = rows[0]
     } catch (dbError) {
       await Promise.all(filesToPersist.map((meta) => deleteMaterialFile(meta.gcsUri)))
       throw dbError
     }
 
-    return c.json({ id: createdMaterialId, files: filesToPersist }, 201)
+    const responsePayload = {
+      id: createdMaterial?.id,
+      status: "pending" as const,
+      files: filesToPersist,
+    }
+
+    if (createdMaterial?.id) {
+      publishMaterialMessage({
+        materialId: createdMaterial.id,
+        classId,
+        gcsUris: filesToPersist.map((file) => file.gcsUri),
+      }).catch((error) => {
+        console.error("[classes:materials:create] failed to publish pubsub message", error)
+      })
+    }
+
+    return c.json(responsePayload, 201)
   } catch (error) {
     console.error("[classes:materials:create] insert failed", error)
     return c.json({ message: "Internal server error" }, 500)

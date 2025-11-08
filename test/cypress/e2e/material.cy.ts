@@ -16,6 +16,7 @@ describe("Material detail", () => {
         title: "Algebra Basics",
         description: "Introduction to algebraic expressions",
         content: "Sample content for algebra.",
+        status: "pending",
         files: [
           {
             uri: fileUri,

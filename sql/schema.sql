@@ -41,6 +41,7 @@ create table if not exists materials (
   description text,
   content text,
   files jsonb not null default '[]'::jsonb,
+  status text not null default 'pending',
   date_start timestamptz,
   date_end timestamptz,
   created_by uuid not null references users(id) on delete cascade,

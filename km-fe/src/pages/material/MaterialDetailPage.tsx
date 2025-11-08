@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Download, File as FileIcon } from "lucide-react"
 import { getMaterialDetail, type MaterialDetail } from "@/lib/api"
+import ReactMarkdown from "react-markdown"
 
 function MaterialDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -64,7 +65,18 @@ function MaterialDetailPage() {
           <CardHeader>
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
-                <CardTitle className="text-2xl font-bold">{material.title}</CardTitle>
+                <div className="flex flex-wrap items-center gap-3">
+                  <CardTitle className="text-2xl font-bold">{material.title}</CardTitle>
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                      material.status === "done"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-amber-100 text-amber-700"
+                    }`}
+                  >
+                    {material.status === "done" ? "Done" : "Pending"}
+                  </span>
+                </div>
                 <p className="text-sm text-muted-foreground">{material.description}</p>
               </div>
             </div>
@@ -76,6 +88,8 @@ function MaterialDetailPage() {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div className="font-medium text-gray-500">Material ID</div>
                   <div>{material.id}</div>
+                  <div className="font-medium text-gray-500">Status</div>
+                  <div>{material.status === "done" ? "Done" : "Pending"}</div>
                   <div className="font-medium text-gray-500">Start Date</div>
                   <div>{material.dateStart ?? "—"}</div>
                   <div className="font-medium text-gray-500">End Date</div>
@@ -113,7 +127,13 @@ function MaterialDetailPage() {
             </div>
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Content</h3>
-              <p className="text-sm text-muted-foreground">{material.content}</p>
+              {material.content ? (
+                <div className="prose max-w-none text-sm text-slate-800 prose-headings:text-slate-900 prose-p:leading-relaxed prose-li:list-disc prose-li:pl-2">
+                  <ReactMarkdown>{material.content}</ReactMarkdown>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No generated content yet.</p>
+              )}
             </div>
           </CardContent>
         </Card>

@@ -49,12 +49,13 @@ export function MaterialListPage({ classId }: MaterialListPageProps) {
     dateEnd?: string
     files: File[]
   }) => {
-    const { id, files } = await createClassMaterial(classId, payload)
+    const { id, files, status } = await createClassMaterial(classId, payload)
     setMaterials((prev) => [
       {
         id,
         title: payload.title,
         description: payload.description ?? "",
+        status: status ?? "pending",
         files,
       },
       ...prev,
@@ -94,9 +95,20 @@ export function MaterialListPage({ classId }: MaterialListPageProps) {
               className="flex items-center justify-between rounded-lg border border-gray-200 p-4 shadow-sm"
             >
               <div>
-                <CardTitle className="text-lg font-semibold text-[#1e1e1e]">
-                  {material.title}
-                </CardTitle>
+                <div className="flex items-center gap-3">
+                  <CardTitle className="text-lg font-semibold text-[#1e1e1e]">
+                    {material.title}
+                  </CardTitle>
+                  <span
+                    className={`rounded-full px-3 py-0.5 text-xs font-semibold ${
+                      material.status === "done"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-amber-100 text-amber-700"
+                    }`}
+                  >
+                    {material.status === "done" ? "Done" : "Pending"}
+                  </span>
+                </div>
                 <p className="text-sm text-[#6b7280]">{material.description}</p>
                 {material.files?.length ? (
                   <p className="text-xs text-[#2563eb]">
