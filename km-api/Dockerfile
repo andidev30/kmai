@@ -29,5 +29,4 @@ COPY --from=builder --chown=hono:nodejs /app/dist ./dist
 COPY --from=builder --chown=hono:nodejs /app/package.json .
 
 USER hono
-EXPOSE 3000
 CMD ["node", "dist/index.js"]
