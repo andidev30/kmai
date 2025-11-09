@@ -90,12 +90,3 @@ create table if not exists student_profiles (
   challenges text[] not null default array[]::text[],
   created_at timestamptz not null default now()
 );
-
-create table if not exists student_exam_summaries (
-  id uuid primary key default uuid_generate_v4(),
-  student_id uuid not null references students(id) on delete cascade,
-  title text not null,
-  summary text not null,
-  details text not null,
-  created_at timestamptz not null default now()
-);
