@@ -3,6 +3,8 @@ import JSZip from "jszip"
 import PDFDocument from "pdfkit"
 import { sql } from "../db.js"
 import { requireAuth, type AuthVariables } from "../middleware/auth.js"
+import { uploadAnswerFile, type UploadableMaterialFile } from "../lib/gcs.js"
+import { publishScoreMessage } from "../lib/pubsub.js"
 
 const exams = new Hono<{ Variables: AuthVariables }>()
 
@@ -57,7 +59,9 @@ exams.get("/:examId", async (c) => {
                st.name,
                coalesce(es.status, 'not-submitted') as status,
                eq.id as "questionId",
-               eq.exam_content as "questionContent"
+               eq.exam_content as "questionContent",
+               es.score,
+               es.feedback
         from students st
         inner join classes c2 on c2.id = st.class_id
         left join exam_students es on es.student_id = st.id and es.exam_id = ${examId}
@@ -83,7 +87,7 @@ exams.post("/:examId/students/:studentId/upload", async (c) => {
   const studentId = c.req.param("studentId")
   const userId = c.get("authUserId")
   const formData = await c.req.parseBody()
-  const file = formData["file"]
+  const file = formData["file"] as UploadableMaterialFile | undefined
 
   if (!file) {
     return c.json({ message: "File is required" }, 400)
@@ -102,21 +106,30 @@ exams.post("/:examId/students/:studentId/upload", async (c) => {
       return c.json({ message: "Exam or student not found" }, 404)
     }
 
-    const answerUrl = `/uploads/${studentId}-${Date.now()}`
+    let uploaded
+    try {
+      if (file && typeof file === "object" && "arrayBuffer" in file) {
+        uploaded = await uploadAnswerFile(file, { examId, studentId })
+      }
+    } catch (e) {
+      console.error("[exams:upload] gcs upload failed", e)
+      return c.json({ message: "Failed to upload file" }, 500)
+    }
+
+    const filesArray = uploaded
+      ? [{ uri: uploaded.uri, gcsUri: uploaded.gcsUri, mimeType: uploaded.mimeType, name: uploaded.name }]
+      : []
+
     await sql`
-      insert into exam_students (exam_id, student_id, status, answer_url, answer_files)
-      values (
-        ${examId},
-        ${studentId},
-        'grading',
-        ${answerUrl},
-        jsonb_build_array(jsonb_build_object('uri', ${answerUrl}))
-      )
-      on conflict (exam_id, student_id) do update
-      set status = 'grading',
-          answer_url = excluded.answer_url,
-          answer_files = excluded.answer_files
+      insert into exam_students (exam_id, student_id, status, answer_files)
+      values (${examId}, ${studentId}, 'grading', ${sql.json(filesArray)})
+      on conflict (exam_id, student_id) do update set status = 'grading', answer_files = ${sql.json(filesArray)}
     `
+
+    publishScoreMessage({ examId, studentId }).catch((err) =>
+      console.error("[exams:upload] failed to publish score message", err),
+    )
+
     return c.json({ message: "Upload received" }, 201)
   } catch (error) {
     console.error("[exams:upload] insert failed", error)
@@ -249,12 +262,13 @@ exams.get("/:examId/students/:studentId/download", async (c) => {
   try {
     const rows =
       await sql`
-        select es.answer_url
+        select es.answer_files
         from exam_students es
         inner join exams e on e.id = es.exam_id
         inner join classes c2 on c2.id = e.class_id
         where es.exam_id = ${examId} and es.student_id = ${studentId} and c2.created_by = ${userId}`
-    const url = rows[0]?.answer_url ?? "#"
+    const files = rows[0]?.answer_files as Array<{ uri?: string }> | undefined
+    const url = files && files.length ? files[0]?.uri ?? "#" : "#"
     return c.json({ url })
   } catch (error) {
     console.error("[exams:student:download] query failed", error)

@@ -75,7 +75,9 @@ create table if not exists exam_students (
   exam_question_id uuid references exam_questions(id) on delete set null,
   status text not null default 'not-submitted',
   answer_files jsonb not null default '[]'::jsonb,
-  answer_url text,
+  score integer,
+  feedback text,
+  graded_at timestamptz,
   created_at timestamptz not null default now(),
   unique (exam_id, student_id)
 );

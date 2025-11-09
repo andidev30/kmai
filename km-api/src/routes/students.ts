@@ -27,7 +27,7 @@ students.get("/:studentId", async (c) => {
       return c.json({ message: "Student not found" }, 404)
     }
 
-    const exams =
+    const examsFromSummaries =
       await sql`
         select ses.id, ses.title, ses.summary, ses.details
         from student_exam_summaries ses
@@ -35,6 +35,20 @@ students.get("/:studentId", async (c) => {
         inner join classes c2 on c2.id = st.class_id
         where ses.student_id = ${studentId} and c2.created_by = ${userId}
         order by ses.created_at desc`
+
+    const examsFromScores =
+      await sql`
+        select e.id,
+               e.title,
+               ('Score: ' || es.score || '/100')::text as summary,
+               coalesce(es.feedback, '') as details
+        from exam_students es
+        inner join exams e on e.id = es.exam_id
+        inner join classes c2 on c2.id = e.class_id
+        where es.student_id = ${studentId}
+          and c2.created_by = ${userId}
+          and es.score is not null
+        order by e.created_at desc`
 
     const row = rows[0] as {
       id: string
@@ -46,7 +60,7 @@ students.get("/:studentId", async (c) => {
 
     return c.json({
       ...row,
-      exams,
+      exams: [...examsFromScores, ...examsFromSummaries],
     })
   } catch (error) {
     console.error("[students:detail] query failed", error)

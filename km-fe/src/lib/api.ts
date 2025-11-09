@@ -166,6 +166,8 @@ export type ExamDetail = {
     status: "graded" | "grading" | "not-submitted"
     questionId?: string | null
     questionContent?: string | null
+    score?: number | null
+    feedback?: string | null
   }>
 }
 

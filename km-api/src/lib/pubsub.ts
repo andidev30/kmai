@@ -10,7 +10,12 @@ const examsTopicName =
     ? process.env.PUBSUB_TOPIC_EXAMS
     : null
 
-const shouldInitPubSub = Boolean(materialsTopicName || examsTopicName)
+const scoresTopicName =
+  process.env.PUBSUB_TOPIC_SCORES && process.env.PUBSUB_TOPIC_SCORES !== "disabled"
+    ? process.env.PUBSUB_TOPIC_SCORES
+    : null
+
+const shouldInitPubSub = Boolean(materialsTopicName || examsTopicName || scoresTopicName)
 
 const pubsub = shouldInitPubSub
   ? new PubSub({
@@ -37,6 +42,11 @@ type ExamMessage = {
     essay: number
     uniquePerStudent: boolean
   }
+}
+
+type ScoreMessage = {
+  examId: string
+  studentId: string
 }
 
 async function publishMessage({
@@ -78,5 +88,14 @@ export async function publishExamMessage(message: ExamMessage) {
     identifier: message.examId,
     message,
     logKey: "PUBSUB_TOPIC_EXAMS",
+  })
+}
+
+export async function publishScoreMessage(message: ScoreMessage) {
+  await publishMessage({
+    topic: scoresTopicName,
+    identifier: `${message.examId}:${message.studentId}`,
+    message,
+    logKey: "PUBSUB_TOPIC_SCORES",
   })
 }

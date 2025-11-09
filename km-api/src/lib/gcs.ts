@@ -70,6 +70,48 @@ export async function uploadMaterialFile(
   }
 }
 
+export async function uploadAnswerFile(
+  file: UploadableMaterialFile,
+  { examId, studentId }: { examId: string; studentId: string },
+): Promise<StoredMaterialFile & { objectPath: string }> {
+  const bucket = getBucket()
+  const originalName = "name" in file && typeof file.name === "string" ? file.name : "answer"
+  const ext = path.extname(originalName)
+  const safeExt = ext.slice(0, 10)
+  const objectPath = [
+    "answers",
+    examId,
+    studentId,
+    `${Date.now()}-${randomSuffix()}${safeExt}`,
+  ]
+    .map((segment) => segment.replace(/[^a-zA-Z0-9._/-]/g, "-"))
+    .join("/")
+
+  const buffer = Buffer.from(await file.arrayBuffer())
+  const mimeType = "type" in file && file.type ? file.type : "application/octet-stream"
+  const gcsFile = bucket.file(objectPath)
+  await gcsFile.save(buffer, {
+    resumable: false,
+    contentType: mimeType,
+    metadata: {
+      cacheControl: "public, max-age=3600",
+      metadata: {
+        originalName,
+      },
+    },
+  })
+  const publicUri = `https://storage.googleapis.com/${bucket.name}/${objectPath}`
+  const gcsUri = `gs://${bucket.name}/${objectPath}`
+
+  return {
+    uri: publicUri,
+    gcsUri,
+    mimeType,
+    name: originalName,
+    objectPath,
+  }
+}
+
 export async function deleteMaterialFile(gcsUri: string) {
   if (!gcsUri.startsWith("gs://")) {
     return
