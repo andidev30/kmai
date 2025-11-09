@@ -322,6 +322,7 @@ function ExamDetailPage() {
                         }
                         input.click()
                       }}
+                      disabled={student.status === "graded"}
                     >
                       Upload photo answer
                     </Button>
