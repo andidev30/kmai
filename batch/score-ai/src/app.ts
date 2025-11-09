@@ -3,6 +3,7 @@ import { Hono } from "hono"
 import "dotenv/config"
 import { fetchStudentAnswerAndQuestion, updateStudentScore } from "./db.js"
 import { score } from "./llm.js"
+import { publishStudentOverviewMessage } from "./pubsub.js"
 
 const app = new Hono()
 
@@ -30,6 +31,8 @@ app.post("/sub", async (c) => {
       : []
     const result = await score({ question: row.question, files: answerFiles })
     await updateStudentScore({ examId, studentId, score: result.score, feedback: result.feedback })
+    publishStudentOverviewMessage({ studentId, examId })
+      .catch((err) => console.error("[score-ai] failed to publish student_overview", err))
     return c.text("OK")
   } catch (error) {
     console.error("[score-ai] failed", error)

@@ -4,6 +4,7 @@
 drop table if exists student_profiles cascade;
 drop table if exists exam_students cascade;
 drop table if exists exam_questions cascade;
+drop table if exists exam_materials cascade;
 drop table if exists exams cascade;
 drop table if exists materials cascade;
 drop table if exists students cascade;

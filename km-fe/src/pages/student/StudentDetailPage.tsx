@@ -73,6 +73,18 @@ function StudentDetailPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+            {(typeof profile.gradedCount === 'number' || typeof profile.avgScore === 'number') && (
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                <div className="rounded-lg border border-slate-200 bg-white p-3 text-sm">
+                  <div className="text-slate-500">Exams graded</div>
+                  <div className="text-lg font-semibold text-slate-900">{profile.gradedCount ?? 0}</div>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-white p-3 text-sm">
+                  <div className="text-slate-500">Average score</div>
+                  <div className="text-lg font-semibold text-slate-900">{profile.avgScore ?? 0}/100</div>
+                </div>
+              </div>
+            )}
             <div>
               <h2 className="text-lg font-semibold text-slate-900">Overview</h2>
               <p className="mt-2 text-sm text-slate-600">{profile.overview}</p>

@@ -68,6 +68,14 @@ create table if not exists exam_questions (
   created_at timestamptz not null default now()
 );
 
+-- Link table between exams and materials used to generate them
+create table if not exists exam_materials (
+  exam_id uuid not null references exams(id) on delete cascade,
+  material_id uuid not null references materials(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (exam_id, material_id)
+);
+
 create table if not exists exam_students (
   id uuid primary key default uuid_generate_v4(),
   exam_id uuid not null references exams(id) on delete cascade,

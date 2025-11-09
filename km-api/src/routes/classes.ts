@@ -288,6 +288,16 @@ classes.post("/:classId/exams", async (c) => {
     const exam = rows[0]
 
     if (exam?.id) {
+      // persist mapping exam -> materials
+      if (materialIds.length) {
+        await sql`
+          insert into exam_materials (exam_id, material_id)
+          select ${exam.id}::uuid, m.id
+            from materials m
+           where m.id = any(${sql.array(materialIds)}::uuid[])
+             and m.class_id = ${classId}
+          on conflict do nothing`
+      }
       publishExamMessage({
         examId: exam.id,
         classId,

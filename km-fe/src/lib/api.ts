@@ -207,6 +207,8 @@ export type StudentProfile = {
   overview: string
   strengths: string[]
   challenges: string[]
+  gradedCount?: number
+  avgScore?: number
   exams: Array<{
     id: string
     title: string
