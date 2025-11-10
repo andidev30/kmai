@@ -7,11 +7,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Outlet, useNavigate } from "react-router-dom"
+import { useState } from "react"
 
 function DashboardLayout() {
   const navigate = useNavigate()
 
-  const userName = "Andi"
+  const [userName] = useState(() => getStoredUserName() ?? "Teacher")
+
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem("km.token")
+      window.localStorage.removeItem("km.user")
+    }
+    navigate("/login")
+  }
 
   return (
     <div className="min-h-screen bg-[#f9fafb] px-4 py-6 text-slate-900 sm:px-6 lg:px-10">
@@ -34,7 +43,7 @@ function DashboardLayout() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 rounded-2xl">
-              <DropdownMenuItem className="text-red-500 hover:bg-red-50" onClick={() => navigate("/login")}>
+              <DropdownMenuItem className="text-red-500 hover:bg-red-50" onClick={handleLogout}>
                 Logout
                 <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
               </DropdownMenuItem>
@@ -51,3 +60,25 @@ function DashboardLayout() {
 }
 
 export default DashboardLayout
+
+function getStoredUserName() {
+  if (typeof window === "undefined") {
+    return null
+  }
+  const rawUser = window.localStorage.getItem("km.user")
+  if (!rawUser) {
+    return null
+  }
+
+  try {
+    const parsed = JSON.parse(rawUser)
+    const name = typeof parsed?.name === "string" ? parsed.name : null
+    if (name) {
+      return name
+    }
+  } catch (error) {
+    console.warn("Failed to parse km.user from storage", error)
+  }
+
+  return null
+}
