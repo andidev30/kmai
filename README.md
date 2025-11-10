@@ -1,75 +1,101 @@
-# KM.ai — Your Digital Teaching Assistant
+# 🧠 KM.ai — Ketua Murid AI
 
-> “An AI that supports teachers, not replaces them.”
+> Your Digital Teaching Assistant — powered by Google Cloud Run & Gemini
 
----
-
-## 🧠 Ideation
-
-In recent years, AI has been widely used to **assist students in learning**, through virtual tutors and practice platforms.  
-However, **teachers have not received the same level of support**.
-
-In Indonesia, one teacher may handle **20–30 students per class**, while also managing administrative work such as:
-
-- preparing lesson materials and exam questions,
-- grading assignments,
-- recording scores and tracking student progress.
-
-These tasks take up a significant amount of time and energy — time that could otherwise be used for **teaching and interacting with students**.
-
-**KM.ai** is designed as a _digital assistant for teachers_ to help reduce this workload.  
-This AI can:
-
-- generate teaching materials based on a teacher’s ideas or templates,
-- automatically create diverse question sets to promote fairness and efficiency,
-- provide progress summaries to help teachers adjust their teaching methods to each class’s needs.
+![Architecture Diagram](./docs/architecture.png)
 
 ---
 
-## 🔤 About the Name — **KM.ai**
+## 🚀 Overview
 
-The name **KM.ai** comes from the Indonesian term **“Ketua Murid”**, which translates to _Class President_.  
-In Indonesian schools, the _Ketua Murid_ is known as the student who **helps the teacher and supports classmates** — wiping the board, organizing materials, or keeping the class orderly.
+**KM.ai (Ketua Murid AI)** is an intelligent assistant designed to help teachers automate lesson preparation, exam creation, and grading — reducing repetitive tasks while maintaining teaching quality.
 
-That same spirit defines KM.ai:
+The project runs entirely on **Google Cloud Run**, using **Gemini (Vertex AI)** and **Pub/Sub** for scalable, event-driven AI workloads.
 
-> **An AI that assists teachers in managing lessons and classrooms more effectively.**
+---
+
+## 💡 Core Concept
+
+Inspired by the real-world _Ketua Murid_ (class leader) in Indonesian classrooms, **KM.ai** acts as a digital assistant for teachers — handling administrative and repetitive academic tasks so teachers can focus on teaching.
 
 ---
 
 ## ✨ Key Features
 
-- **Authentication**
-  - Register & Login for Teachers, Admins, and School Leaders
-- **Dashboard**
-  - Main overview page with access to classes and organizations
-- **Organization / School Management**
-  - Create or manage an organization (school, tutoring center)
-  - Assign roles: admin, teacher, or staff
-- **Class Management**
-  - Create new classes or join existing ones as a teacher
-  - View and manage class details, including name, description, and members
-- **In-Class Management**
-  - Add and manage students
-  - Upload learning materials
-  - Create and manage quizzes or tests
-  - View student progress individually or as a group
+### 🏫 Teacher Workflow
+
+- **📘 Upload Materials** → AI organizes and structures content into lessons.
+- **🧩 Create Exams** → Generates both multiple-choice and essay questions.
+- **📤 Upload Answers** → AI evaluates and provides detailed feedback.
+- **📊 Student Progress Dashboard** → Summarized analytics for teachers.
+
+### ⚙️ Technical Highlights
+
+- **Serverless architecture** via Cloud Run
+- **Event-driven workflow** powered by Pub/Sub
+- **Gemini (Vertex AI)** for content generation and scoring
+- **Cloud SQL (PostgreSQL)** for persistent data storage
+- **Vite + React + Shadcn UI** for a modern, modular frontend
 
 ---
 
-## 🧩 Vision
+## 🧱 Architecture
 
-KM.ai is built to empower teachers — helping them save time, focus on teaching, and personalize learning for every student.  
-It embodies the spirit of the _Ketua Murid_: reliable, proactive, and always ready to help.
+```mermaid
+flowchart TD
+  T(Teacher) --> FE[km-fe<br/>Cloud Run]
+  FE --> API[km-api<br/>Cloud Run]
+
+  API --> MTopic[materials<br/>Pub/Sub Topic]
+  API --> ETopic[exam<br/>Pub/Sub Topic]
+  API --> STopic[score<br/>Pub/Sub Topic]
+
+  MTopic --> MAI[materials-ai<br/>Gen AI Service]
+  ETopic --> EAI[exam-ai<br/>Gen AI Service]
+  STopic --> SAI[score-ai<br/>Gen AI Service]
+  SAI --> OTopic[overview<br/>Pub/Sub Topic]
+  OTopic --> API
+
+  API --> SQL[Cloud SQL<br/>PostgreSQL]
+  MAI --> SQL
+  EAI --> SQL
+  SAI --> SQL
+  MAI --> Gemini[Gemini<br/>Vertex AI]
+  EAI --> Gemini
+  SAI --> Gemini
+  SQL --> API
+  API --> FE
+  FE --> T
+```
+
+### 🧩 Service Breakdown
+
+| Service                | Description                                   | Stack                          |
+| ---------------------- | --------------------------------------------- | ------------------------------ |
+| **km-fe**              | Frontend web app for teachers                 | Vite + React + Shadcn UI       |
+| **km-api**             | Core API gateway handling CRUD + Pub/Sub      | Node.js + Express              |
+| **materials-ai**       | AI worker for generating structured materials | Node.js + Google Generative AI |
+| **exam-ai**            | AI worker for exam creation                   | Node.js + Gemini API           |
+| **score-ai**           | AI worker for scoring & feedback              | Node.js + Gemini + Pub/Sub     |
+| **Cloud SQL**          | Stores class, student, and exam data          | PostgreSQL                     |
+| **Gemini (Vertex AI)** | Foundation model for generation and reasoning | Vertex AI                      |
 
 ---
 
-## 💬 Tagline
+## 🧩 Data Flow Summary
 
-> **KM.ai — The Class Leader that helps teachers teach smarter.**
+1. Teacher uploads materials or creates exams.
+2. `km-api` publishes events (materials, exam, score) to Pub/Sub topics.
+3. Dedicated Cloud Run AI services consume events and process them using Gemini.
+4. Results are stored in Cloud SQL and optionally re-published for aggregation.
+5. `km-fe` fetches updates from `km-api` and displays results to the teacher dashboard.
 
 ---
 
-## 📄 License
+## 🧠 Built With
 
-MIT License © 2025 KM.ai Project Team
+- **Google Cloud Run** – Serverless container hosting
+- **Cloud SQL (PostgreSQL)** – Relational database
+- **Vertex AI (Gemini)** – Generative AI model integration
+- **Pub/Sub** – Asynchronous event communication
+- **Vite + React + Shadcn UI** – Frontend framework
