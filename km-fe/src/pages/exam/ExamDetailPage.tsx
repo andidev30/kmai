@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { ArrowLeft, Download, Eye } from "lucide-react"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm";
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -376,9 +374,11 @@ function ExamDetailPage() {
           </DialogHeader>
           <div className="prose max-w-none text-sm text-slate-700 prose-headings:text-slate-900 prose-ol:list-decimal prose-ul:list-disc prose-li:pl-2">
             {contentModal.content ? (
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {contentModal.content.replace(/\n/g, "  \n")}
-              </ReactMarkdown>
+              <div className="whitespace-pre-wrap font-sans">
+                {contentModal.content.split('\n').map((line, idx) => (
+                  <div key={idx}>{line || '\u00A0'}</div>
+                ))}
+              </div>
             ) : (
               "No exam content available."
             )}
