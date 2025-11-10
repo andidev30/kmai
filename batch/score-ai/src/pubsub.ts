@@ -30,6 +30,7 @@ export async function publishStudentOverviewMessage(message: StudentOverviewMess
   try {
     const dataBuffer = Buffer.from(JSON.stringify(message))
     await pubsub.topic(topicName).publishMessage({ data: dataBuffer })
+    console.log( topicName, `pubslish message`, message)
   } catch (error) {
     console.error("[score-ai/pubsub] Failed to publish student_overview message", error)
   }

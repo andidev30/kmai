@@ -31,8 +31,7 @@ app.post("/sub", async (c) => {
       : []
     const result = await score({ question: row.question, files: answerFiles })
     await updateStudentScore({ examId, studentId, score: result.score, feedback: result.feedback })
-    publishStudentOverviewMessage({ studentId, examId })
-      .catch((err) => console.error("[score-ai] failed to publish student_overview", err))
+    await publishStudentOverviewMessage({ studentId, examId })
     return c.text("OK")
   } catch (error) {
     console.error("[score-ai] failed", error)
