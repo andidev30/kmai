@@ -2,7 +2,7 @@
 
 > Your Digital Teaching Assistant — powered by Google Cloud Run & Gemini
 
-![Architecture Diagram](./docs/architecture.png)
+![Architecture Diagram](./.docs/architecture.png)
 
 ---
 
