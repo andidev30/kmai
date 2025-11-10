@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { ArrowLeft, Download, Eye } from "lucide-react"
 import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm";
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -373,9 +374,11 @@ function ExamDetailPage() {
                 : "Exam questions"}
             </DialogTitle>
           </DialogHeader>
-          <div className="prose max-w-none text-sm text-slate-700">
+          <div className="prose max-w-none text-sm text-slate-700 prose-headings:text-slate-900 prose-ol:list-decimal prose-ul:list-disc prose-li:pl-2">
             {contentModal.content ? (
-              <ReactMarkdown>{contentModal.content}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {contentModal.content.replace(/\n/g, "  \n")}
+              </ReactMarkdown>
             ) : (
               "No exam content available."
             )}
